@@ -1,9 +1,15 @@
-import os
 import time
-from multiprocessing import Process
+import threading
 from socket import *
+
+
 myHost = ''
 myPort = 50007
+
+sockobj = socket(AF_INET, SOCK_STREAM)
+sockobj.bind((myHost, myPort))
+
+sockobj.listen(5)
 
 
 def now():
@@ -11,8 +17,7 @@ def now():
 
 
 def handle_client(connection):
-    print('Child:', os.getpid())                 # child process: reply, exit
-    time.sleep(5)                                # simulate a blocking activity
+    time.sleep(5)
     while True:
         data = connection.recv(1024)
         if not data:
@@ -27,12 +32,7 @@ def dispatcher():
         connection, address = sockobj.accept()
         print('Server connected by', address, end=' ')
         print('at', now())
-        Process(target=handle_client, args=(connection,)).start()
+        threading.Thread(target=handle_client, args=(connection,)).start()
 
 
-if __name__ == '__main__':
-    print('Parent:', os.getpid())
-    sockobj = socket(AF_INET, SOCK_STREAM)
-    sockobj.bind((myHost, myPort))
-    sockobj.listen(5)
-    dispatcher()
+dispatcher()
