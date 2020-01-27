@@ -12,9 +12,10 @@ import os
 from http.server import HTTPServer, CGIHTTPRequestHandler
 
 webdir = '.'
-port = 2000
+port = 8000
 
 os.chdir(webdir)  # перейти в корневой веб-каталог
 srvraddr = ('', port)
 srvrobj = HTTPServer(srvraddr, CGIHTTPRequestHandler)
+
 srvrobj.serve_forever()
