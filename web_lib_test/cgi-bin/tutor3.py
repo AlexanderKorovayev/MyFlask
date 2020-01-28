@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 runs on the server, reads form input, prints HTML;
 url=http://server-name/cgi-bin/tutor3.py

@@ -17,5 +17,5 @@ port = 8000
 os.chdir(webdir)  # перейти в корневой веб-каталог
 srvraddr = ('', port)
 srvrobj = HTTPServer(srvraddr, CGIHTTPRequestHandler)
-
+print("server started")
 srvrobj.serve_forever()
