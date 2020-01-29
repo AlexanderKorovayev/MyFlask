@@ -54,7 +54,7 @@ class MyHTTPServer:
             raise Exception('Bad request')
         if host not in (self._server_name,
                         f'{self._server_name}:{self._port}'):
-            raise Exception('Not found')
+            raise HTTPError(404, 'Not found')
         return Request(method, target, ver, headers, rfile)
 
     def parse_headers(self, rfile):
@@ -102,7 +102,7 @@ class MyHTTPServer:
             if user_id.isdigit():
                 return self.handle_get_user(req, user_id)
 
-        raise Exception('Not found')
+        raise HTTPError(404, 'Not found')
 
     def handle_post_users(self, req):
         user_id = len(self._users) + 1
@@ -137,13 +137,61 @@ class MyHTTPServer:
         return Response(200, 'OK', headers, body)
 
     def handle_get_user(self, req, user_id):
-        pass
+        user = self._users.get(int(user_id))
+        if not user:
+            raise HTTPError(404, 'Not found')
+
+        accept = req.headers.get('Accept')
+        if 'text/html' in accept:
+            contentType = 'text/html; charset=utf-8'
+            body = '<html><head></head><body>'
+            body += f'#{user["id"]} {user["name"]}, {user["age"]}'
+            body += '</body></html>'
+
+        elif 'application/json' in accept:
+            contentType = 'application/json; charset=utf-8'
+            body = json.dumps(user)
+
+        else:
+            # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/406
+            return Response(406, 'Not Acceptable')
+
+        body = body.encode('utf-8')
+        headers = [('Content-Type', contentType),
+                ('Content-Length', len(body))]
+        return Response(200, 'OK', headers, body)
 
     def send_response(self, conn, resp):
-        pass  # TODO: implement me
+        wfile = conn.makefile('wb')
+        status_line = f'HTTP/1.1 {resp.status} {resp.reason}\r\n'
+        wfile.write(status_line.encode('iso-8859-1'))
+
+        if resp.headers:
+            for (key, value) in resp.headers:
+                header_line = f'{key}: {value}\r\n'
+                wfile.write(header_line.encode('iso-8859-1'))
+
+        wfile.write(b'\r\n')
+
+        if resp.body:
+            wfile.write(resp.body)
+
+        wfile.flush()
+        wfile.close()
 
     def send_error(self, conn, err):
-        pass  # TODO: implement me
+        try:
+            status = err.status
+            reason = err.reason
+            body = (err.body or err.reason).encode('utf-8')
+        except:
+            status = 500
+            reason = b'Internal Server Error'
+            body = b'Internal Server Error'
+        resp = Response(status, reason,
+                    [('Content-Length', len(body))],
+                    body)
+        self.send_response(conn, resp)
 
 
 class Request:
@@ -153,6 +201,12 @@ class Request:
         self.version = version
         self.headers = headers
         self.rfile = rfile
+
+    def body(self):
+        size = self.headers.get('Content-Length')
+        if not size:
+            return None
+        return self.rfile.read(size)
 
     @property
     def path(self):
@@ -175,6 +229,14 @@ class Response:
         self.reason = reason
         self.headers = headers
         self.body = body
+
+
+class HTTPError(Exception):
+  def __init__(self, status, reason, body=None):
+    super()
+    self.status = status
+    self.reason = reason
+    self.body = body
 
 
 if __name__ == '__main__':
