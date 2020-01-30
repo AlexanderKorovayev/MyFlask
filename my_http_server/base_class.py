@@ -37,12 +37,11 @@ class MyHTTPServer:
         try:
             req = self.parse_request(conn)
             resp = self.handle_request(req)
+            print(resp)
             self.send_response(conn, resp)
         except ConnectionResetError:
-            print("IN5")
             conn = None
         except Exception as e:
-            print("IN6")
             self.send_error(conn, e)
 
         if conn:
@@ -55,10 +54,28 @@ class MyHTTPServer:
         host = headers.get('Host')
         if not host:
             raise Exception('Bad request')
-        if host not in (self._server_name,
-                        f'{self._server_name}:{self._port}'):
+        if host not in (self._server_name, f'{self._server_name}:{self._port}'):
             raise HTTPError(404, 'Not found')
         return Request(method, target, ver, headers, rfile)
+
+    def parse_request_line(self, rfile):
+        raw = rfile.readline(MyHTTPServer.MAX_LINE + 1)  # эффективно читаем строку целиком, проверяется что п офакту больше в строке чем максимум, если считалось +1
+
+        if len(raw) > MyHTTPServer.MAX_LINE:
+            raise Exception('Request line is too long')
+
+        req_line = str(raw, 'iso-8859-1')
+        req_line = req_line.rstrip('\r\n')
+        words = req_line.split()
+
+        if len(words) != 3:
+            raise Exception('Malformed request line')
+
+        method, target, ver = words
+        if ver != 'HTTP/1.1':
+            raise Exception('Unexpected HTTP version')
+
+        return method, target, ver
 
     def parse_headers(self, rfile):
         headers = []
@@ -73,31 +90,13 @@ class MyHTTPServer:
             headers.append(line)
             if len(headers) > MyHTTPServer.MAX_HEADERS:
                 raise Exception('Too many headers')
-            str_headers = b''.join(headers).decode('iso-8859-1')
+
+        str_headers = b''.join(headers).decode('iso-8859-1')
         return Parser().parsestr(str_headers)
-
-    def parse_request_line(self, rfile):
-        raw = rfile.readline(MyHTTPServer.MAX_LINE + 1)  # эффективно читаем строку целиком, проверяется что п офакту больше в строке чем максимум, если считалось +1
-        print(raw)
-        print(len(raw))
-        if len(raw) > MyHTTPServer.MAX_LINE:
-            raise Exception('Request line is too long')
-
-        req_line = str(raw, 'iso-8859-1')
-        req_line = req_line.rstrip('\r\n')
-        words = req_line.split()
-        print(words)
-        if len(words) != 3:
-            raise Exception('Malformed request line')
-
-        method, target, ver = words
-        if ver != 'HTTP/1.1':
-            raise Exception('Unexpected HTTP version')
-
-        return method, target, ver
 
     def handle_request(self, req):
         if req.path == '/users' and req.method == 'POST':
+            print('in')
             return self.handle_post_users(req)
 
         if req.path == '/users' and req.method == 'GET':
@@ -215,6 +214,11 @@ class Request:
         return self.rfile.read(size)
 
     @property
+    @lru_cache(maxsize=None)
+    def url(self):
+        return urlparse(self.target)
+
+    @property
     def path(self):
         return self.url.path
 
@@ -222,11 +226,6 @@ class Request:
     @lru_cache(maxsize=None)
     def query(self):
         return parse_qs(self.url.query)
-
-    @property
-    @lru_cache(maxsize=None)
-    def url(self):
-        return urlparse(self.target)
 
 
 class Response:
@@ -251,7 +250,7 @@ if __name__ == '__main__':
     # my_port = int(sys.argv[2])
     # my_name = sys.argv[3]
 
-    serv = MyHTTPServer('127.0.0.1', 2005, 'test')
+    serv = MyHTTPServer('127.0.0.1', 2006, 'example.local')
     try:
         serv.serve_forever()
     except KeyboardInterrupt:
