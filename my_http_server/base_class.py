@@ -1,9 +1,9 @@
 import socket
-import sys
 from email.parser import Parser
 from functools import lru_cache
 from urllib.parse import parse_qs, urlparse
 import json
+
 
 class MyHTTPServer:
 
@@ -24,8 +24,9 @@ class MyHTTPServer:
             serv_sock.listen()
 
             while True:
-                conn, _ = serv_sock.accept()
+                conn, address = serv_sock.accept()
                 try:
+                    print('Connected ' + str(address))
                     self.serve_client(conn)
                 except Exception as e:
                     print('Client serving failed', e)
@@ -38,8 +39,10 @@ class MyHTTPServer:
             resp = self.handle_request(req)
             self.send_response(conn, resp)
         except ConnectionResetError:
+            print("IN5")
             conn = None
         except Exception as e:
+            print("IN6")
             self.send_error(conn, e)
 
         if conn:
@@ -74,13 +77,16 @@ class MyHTTPServer:
         return Parser().parsestr(str_headers)
 
     def parse_request_line(self, rfile):
-        raw = rfile.readline(MyHTTPServer.MAX_LINE + 1)  # эффективно читаем строку целиком
+        raw = rfile.readline(MyHTTPServer.MAX_LINE + 1)  # эффективно читаем строку целиком, проверяется что п офакту больше в строке чем максимум, если считалось +1
+        print(raw)
+        print(len(raw))
         if len(raw) > MyHTTPServer.MAX_LINE:
             raise Exception('Request line is too long')
 
         req_line = str(raw, 'iso-8859-1')
         req_line = req_line.rstrip('\r\n')
         words = req_line.split()
+        print(words)
         if len(words) != 3:
             raise Exception('Malformed request line')
 
@@ -232,19 +238,20 @@ class Response:
 
 
 class HTTPError(Exception):
-  def __init__(self, status, reason, body=None):
-    super()
-    self.status = status
-    self.reason = reason
-    self.body = body
+    def __init__(self, status, reason, body=None):
+        super()
+        self.status = status
+        self.reason = reason
+        self.body = body
 
 
 if __name__ == '__main__':
-    my_host = sys.argv[1]
-    my_port = int(sys.argv[2])
-    my_name = sys.argv[3]
+    # import sys
+    # my_host = sys.argv[1]
+    # my_port = int(sys.argv[2])
+    # my_name = sys.argv[3]
 
-    serv = MyHTTPServer(my_host, my_port, my_name)
+    serv = MyHTTPServer('127.0.0.1', 2005, 'test')
     try:
         serv.serve_forever()
     except KeyboardInterrupt:

@@ -3,7 +3,7 @@ from socket import *
 serverHost = 'localhost'
 serverPort = 2005
 
-message = [b'Hello network world']
+message = [b'POST /users?name=Vasya&age=42 HTTP/1.1\r\nHost: example.local\r\n']
 
 sockobj = socket(AF_INET, SOCK_STREAM)
 sockobj.connect((serverHost, serverPort))
