@@ -7,8 +7,9 @@ import json
 
 class MyHTTPServer:
 
-    MAX_LINE = 64*1024
-    MAX_HEADERS = 100
+    MAX_LINE = 64*1024  # http протокол не обязывает ограничивать длинну строк реквест лайна,
+    # но обычно сервера ограничивают
+    MAX_HEADERS = 100  # в целом http протокол не обязывает ограничивать длинну хидера, но обычно сервера ограничивают
 
     def __init__(self, host_name, port_id, server_name):
         self._host = host_name
@@ -17,7 +18,11 @@ class MyHTTPServer:
         self._users = {}
 
     def serve_forever(self):
-        serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=0)
+        """
+        главная функция по обслуживанию клиента
+        TODO сделать обслуживание асинхронным или многопроцессорным
+        """
+        serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
             serv_sock.bind((self._host, self._port))
@@ -34,10 +39,13 @@ class MyHTTPServer:
             serv_sock.close()
 
     def serve_client(self, conn):
+        """
+        обслуживание запроса(обработка запроса, выполнение запроса, ответ клиенту)
+        :param conn: соединение с клиентом
+        """
         try:
             req = self.parse_request(conn)
             resp = self.handle_request(req)
-            print(resp)
             self.send_response(conn, resp)
         except ConnectionResetError:
             conn = None
@@ -48,6 +56,11 @@ class MyHTTPServer:
             conn.close()
 
     def parse_request(self, conn):
+        """
+        разбор запроса от клиента
+        :param conn:
+        :return: объект запроса
+        """
         rfile = conn.makefile('rb')
         method, target, ver = self.parse_request_line(rfile)
         headers = self.parse_headers(rfile)
@@ -59,7 +72,12 @@ class MyHTTPServer:
         return Request(method, target, ver, headers, rfile)
 
     def parse_request_line(self, rfile):
-        raw = rfile.readline(MyHTTPServer.MAX_LINE + 1)  # эффективно читаем строку целиком, проверяется что п офакту больше в строке чем максимум, если считалось +1
+        """
+        разбор реквест лайна
+        :param rfile: объект сокета, обёрнутый оболочкой файла
+        :return: метод запроса, путь запроса, версия протокола
+        """
+        raw = rfile.readline(MyHTTPServer.MAX_LINE + 1)
 
         if len(raw) > MyHTTPServer.MAX_LINE:
             raise Exception('Request line is too long')
@@ -69,21 +87,28 @@ class MyHTTPServer:
         words = req_line.split()
 
         if len(words) != 3:
-            raise Exception('Malformed request line')
+            raise Exception('Incorrect request line')
 
         method, target, ver = words
+        # реализована поддержка толкьо версии 1.1
         if ver != 'HTTP/1.1':
             raise Exception('Unexpected HTTP version')
 
         return method, target, ver
 
     def parse_headers(self, rfile):
+        """
+        разбор заголовков
+        :param rfile: объект сокета, обёрнутый оболочкой файла
+        :return: объект, содержащий заголовки
+        """
         headers = []
         while True:
             line = rfile.readline(MyHTTPServer.MAX_LINE + 1)
             if len(line) > MyHTTPServer.MAX_LINE:
                 raise Exception('Header line is too long')
 
+            # проверка на окончание блока с заголовками
             if line in (b'\r\n', b'\n', b''):
                 break
 
@@ -95,8 +120,12 @@ class MyHTTPServer:
         return Parser().parsestr(str_headers)
 
     def handle_request(self, req):
+        """
+        обработка запроса от клиента
+        :param req: объект запроса
+        :return: данные для клиента
+        """
         if req.path == '/users' and req.method == 'POST':
-            print('in')
             return self.handle_post_users(req)
 
         if req.path == '/users' and req.method == 'GET':
@@ -110,6 +139,11 @@ class MyHTTPServer:
         raise HTTPError(404, 'Not found')
 
     def handle_post_users(self, req):
+        """
+        обработка запроса на создание пользователя
+        :param req: объект запроса
+        :return: объект ответа
+        """
         user_id = len(self._users) + 1
         self._users[user_id] = {'id': user_id,
                                 'name': req.query['name'][0],
@@ -117,6 +151,11 @@ class MyHTTPServer:
         return Response(204, 'Created')
 
     def handle_get_users(self, req):
+        """
+        обработка запроса на получение всех пользователей
+        :param req: объект запроса
+        :return: объект ответа
+        """
         accept = req.headers.get('Accept')
         if 'text/html' in accept:
             content_type = 'text/html; charset=utf-8'
@@ -133,7 +172,6 @@ class MyHTTPServer:
             body = json.dumps(self._users)
 
         else:
-            # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/406
             return Response(406, 'Not Acceptable')
 
         body = body.encode('utf-8')
@@ -142,6 +180,12 @@ class MyHTTPServer:
         return Response(200, 'OK', headers, body)
 
     def handle_get_user(self, req, user_id):
+        """
+        бработка запроса на получение пользоватедя по id
+        :param req: объект запроса
+        :param user_id: id пользователя
+        :return: объект запроса
+        """
         user = self._users.get(int(user_id))
         if not user:
             raise HTTPError(404, 'Not found')
@@ -158,7 +202,6 @@ class MyHTTPServer:
             body = json.dumps(user)
 
         else:
-            # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/406
             return Response(406, 'Not Acceptable')
 
         body = body.encode('utf-8')
@@ -167,6 +210,11 @@ class MyHTTPServer:
         return Response(200, 'OK', headers, body)
 
     def send_response(self, conn, resp):
+        """
+        Отправка ответа клиенту
+        :param conn: сокет
+        :param resp: объект ответа
+        """
         wfile = conn.makefile('wb')
         status_line = f'HTTP/1.1 {resp.status} {resp.reason}\r\n'
         wfile.write(status_line.encode('iso-8859-1'))
@@ -185,6 +233,11 @@ class MyHTTPServer:
         wfile.close()
 
     def send_error(self, conn, err):
+        """
+        конструирование объекта ошибки и его отправка
+        :param conn: сокет
+        :param err: ошибка
+        """
         try:
             status = err.status
             reason = err.reason
@@ -200,6 +253,9 @@ class MyHTTPServer:
 
 
 class Request:
+    """
+    класс объект запроса
+    """
     def __init__(self, method, target, version, headers, rfile):
         self.method = method
         self.target = target
@@ -229,6 +285,9 @@ class Request:
 
 
 class Response:
+    """
+        класс объект ответа
+    """
     def __init__(self, status, reason, headers=None, body=None):
         self.status = status
         self.reason = reason
@@ -237,6 +296,9 @@ class Response:
 
 
 class HTTPError(Exception):
+    """
+    ксласс обработчик запросов
+    """
     def __init__(self, status, reason, body=None):
         super()
         self.status = status
