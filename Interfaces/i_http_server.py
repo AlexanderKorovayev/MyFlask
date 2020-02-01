@@ -1,0 +1,82 @@
+import socket
+
+
+class IHTTPServer:
+
+    MAX_LINE = 64*1024  # http протокол не обязывает ограничивать длинну строк реквест лайна,
+    # но обычно сервера ограничивают
+    MAX_HEADERS = 100  # в целом http протокол не обязывает ограничивать длинну хидера, но обычно сервера ограничивают
+
+    def __init__(self, host_name, port_id, server_name):
+        self._host = host_name
+        self._port = port_id
+        self._server_name = server_name
+
+    def serve_forever(self):
+        """
+        главная функция по обслуживанию клиента
+        """
+        serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        try:
+            serv_sock.bind((self._host, self._port))
+            serv_sock.listen()
+
+            while True:
+                conn, _ = serv_sock.accept()
+                try:
+                    self.serve_client(conn)
+                except Exception as e:
+                    self.send_error(conn, e)
+        finally:
+            serv_sock.close()
+
+    def serve_client(self, conn):
+        """
+        обслуживание запроса(обработка запроса, выполнение запроса, ответ клиенту)
+        :param conn: соединение с клиентом
+        """
+        try:
+            req = self.parse_request(conn)
+            resp = self.handle_request(req)
+            self.send_response(conn, resp)
+        except ConnectionResetError:
+            conn = None
+        except Exception as e:
+            self.send_error(conn, e)
+
+        if conn:
+            conn.close()
+
+    def parse_request(self, conn):
+        """
+        разбор запроса от клиента
+        :param conn:
+        :return: объект запроса
+        """
+        raise NotImplementedError
+
+    def handle_request(self, req):
+        """
+        обработка запроса от клиента
+        :param req: объект запроса
+        :return: данные для клиента
+        """
+        raise NotImplementedError
+
+    def send_response(self, conn, resp):
+        """
+        Отправка ответа клиенту
+        :param conn: сокет
+        :param resp: объект ответа
+        """
+        raise NotImplementedError
+
+    def send_error(self, conn, err):
+        """
+        конструирование объекта ошибки и его отправка
+        :param conn: сокет
+        :param err: ошибка
+        """
+        raise NotImplementedError
+    

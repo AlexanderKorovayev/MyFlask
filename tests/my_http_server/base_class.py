@@ -58,7 +58,7 @@ class MyHTTPServer:
     def parse_request(self, conn):
         """
         разбор запроса от клиента
-        :param conn:
+        :param conn: сокет
         :return: объект запроса
         """
         rfile = conn.makefile('rb')
