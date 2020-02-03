@@ -6,7 +6,7 @@
 from functools import lru_cache
 
 
-class Request:
+class IRequest:
     """
     класс объект запроса
     """

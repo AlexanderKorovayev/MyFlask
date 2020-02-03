@@ -5,7 +5,10 @@
 import socket
 
 
-class IHTTPServer:
+class IServer:
+    """
+    класс, определяющий базовый функционал для сервера
+    """
     def __init__(self, host_name, port_id, server_name):
         self._host = host_name
         self._port = port_id
