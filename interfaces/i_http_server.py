@@ -1,12 +1,11 @@
+"""
+Модуль описывает базовую логику http сервера
+"""
+
 import socket
 
 
 class IHTTPServer:
-
-    MAX_LINE = 64*1024  # http протокол не обязывает ограничивать длинну строк реквест лайна,
-    # но обычно сервера ограничивают
-    MAX_HEADERS = 100  # в целом http протокол не обязывает ограничивать длинну хидера, но обычно сервера ограничивают
-
     def __init__(self, host_name, port_id, server_name):
         self._host = host_name
         self._port = port_id
@@ -79,4 +78,3 @@ class IHTTPServer:
         :param err: ошибка
         """
         raise NotImplementedError
-    

@@ -1,3 +1,8 @@
+"""
+модуль описывает базовый объект запроса клиента
+"""
+
+
 from functools import lru_cache
 
 
@@ -22,6 +27,6 @@ class Request:
     @lru_cache(maxsize=None)
     def url(self):
         """
-        метод для парсинга ссылки
+        метод для парсинга таргета
         """
         raise NotImplementedError
