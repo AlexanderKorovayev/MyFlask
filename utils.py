@@ -23,3 +23,33 @@ def check_type(obj, base_type):
                 return rez
     return rez
 
+
+class Test:
+    route_map = {}
+    def route(self, path):
+        def inner_route(f):
+            Test.route_map[path] = f.__name__
+            def inner_inner_route(*args, **kwargs):
+                self.path = path
+                rez = f(*args, **kwargs)
+                return rez
+            return inner_inner_route
+        return inner_route
+
+    def test(self, path):
+        func = Test.route_map.get(path)
+        print(globals().get(func)())
+
+test = Test()
+
+@test.route('/')
+def logic():
+    return 'test'
+
+@test.route('/start')
+def logic1():
+    return 'test'
+
+test.test('/')
+
+
