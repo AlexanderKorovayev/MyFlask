@@ -6,7 +6,6 @@ from interfaces.i_server import IServer
 from interfaces.i_response import Response
 from base_errors.http_errors import HTTPError
 from implementations.http_server.http_request import Request
-import socket
 from email.parser import Parser
 import json
 
@@ -21,94 +20,55 @@ class HTTPServer(IServer):
         super().__init__(host_name, port_id, server_name)
         self._users = {}
 
-    def serve_forever(self):
-        """
-        главная функция по обслуживанию клиента
-        TODO сделать обслуживание асинхронным или многопроцессорным
-        """
-        serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        try:
-            serv_sock.bind((self._host, self._port))
-            serv_sock.listen()
-
-            while True:
-                conn, address = serv_sock.accept()
-                try:
-                    print('Connected ' + str(address))
-                    self.serve_client(conn)
-                except Exception as e:
-                    print('Client serving failed', e)
-        finally:
-            serv_sock.close()
-
-    def serve_client(self, conn):
-        """
-        обслуживание запроса(обработка запроса, выполнение запроса, ответ клиенту)
-        :param conn: соединение с клиентом
-        """
-        try:
-            req = self.parse_request(conn)
-            resp = self.handle_request(req)
-            self.send_response(conn, resp)
-        except ConnectionResetError:
-            conn = None
-        except Exception as e:
-            self.send_error(conn, e)
-
-        if conn:
-            conn.close()
-
     def parse_request(self, conn):
         """
         разбор запроса от клиента
         :param conn: сокет
         :return: объект запроса
         """
-        rfile = conn.makefile('rb')
-        method, target, ver = self.parse_request_line(rfile)
-        headers = self.parse_headers(rfile)
+        self._rfile = conn.makefile('rb')
+        method, target, ver = self._parse_request_line()
+        headers = self._parse_headers()
         host = headers.get('Host')
         if not host:
             raise Exception('Bad request')
         if host not in (self._server_name, f'{self._server_name}:{self._port}'):
             raise HTTPError(404, 'Not found')
-        return Request(method, target, ver, headers, rfile)
+        return Request(method, target, ver, headers, self._rfile)
 
-    def parse_request_line(self, rfile):
+    def _parse_request_line(self):
         """
         разбор реквест лайна
-        :param rfile: объект сокета, обёрнутый оболочкой файла
         :return: метод запроса, путь запроса, версия протокола
         """
-        raw = rfile.readline(HTTPServer.MAX_LINE + 1)
+        raw = self._rfile.readline(HTTPServer.MAX_LINE + 1)
 
         if len(raw) > HTTPServer.MAX_LINE:
             raise Exception('Request line is too long')
 
         req_line = str(raw, 'iso-8859-1')
         req_line = req_line.rstrip('\r\n')
-        words = req_line.split()
+        params = req_line.split()
 
-        if len(words) != 3:
+        if len(params) != 3:
             raise Exception('Incorrect request line')
 
-        method, target, ver = words
+        method, target, ver = params
+
         # реализована поддержка толкьо версии 1.1
         if ver != 'HTTP/1.1':
             raise Exception('Unexpected HTTP version')
 
         return method, target, ver
 
-    def parse_headers(self, rfile):
+    def _parse_headers(self):
         """
         разбор заголовков
-        :param rfile: объект сокета, обёрнутый оболочкой файла
         :return: объект, содержащий заголовки
         """
         headers = []
         while True:
-            line = rfile.readline(HTTPServer.MAX_LINE + 1)
+            line = self._rfile.readline(HTTPServer.MAX_LINE + 1)
             if len(line) > HTTPServer.MAX_LINE:
                 raise Exception('Header line is too long')
 
@@ -128,6 +88,7 @@ class HTTPServer(IServer):
         обработка запроса от клиента
         :param req: объект запроса
         :return: данные для клиента
+        #TODO вот эта часть должна быть декоратором, т.е. сервер запускается обрабатывает запрос а эта штука реализует уже бл. Т.е. это по сути меняющаяся часть
         """
         if req.path == '/users' and req.method == 'POST':
             return self.handle_post_users(req)

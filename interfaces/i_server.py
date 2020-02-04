@@ -13,10 +13,12 @@ class IServer:
         self._host = host_name
         self._port = port_id
         self._server_name = server_name
+        self._rfile = None
 
     def serve_forever(self):
         """
         главная функция по обслуживанию клиента
+        TODO сделать обслуживание асинхронным или многопроцессорным
         """
         serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
