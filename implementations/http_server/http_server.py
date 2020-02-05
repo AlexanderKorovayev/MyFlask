@@ -18,7 +18,6 @@ class HTTPServer(IServer):
 
     def __init__(self, host_name, port_id, server_name):
         super().__init__(host_name, port_id, server_name)
-        self._users = {}
 
     def parse_request(self, conn):
         """
