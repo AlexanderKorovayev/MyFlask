@@ -1,11 +1,24 @@
 from implementations.my_flask import flask
 from interfaces.i_response import Response
 import json
+from implementations.my_flask.simple_data_worker import SimpleDataWorker
+from interfaces.i_data_worker import IDataWorker
+from utils import check_type
+
+
+#TODO функции должны иметь доступ к данным  реквеста а не принимать их в аргументе. 
+# во фласке вроде было сделано так что ты импортируешь этот объект и он всегда наполнен данными реквеста, надо погуглить и подумать как сделать так же
+
 
 
 # инициализация фласка
 app = flask.Flask(2000)
 
+# проверяем подходит ли нам интерфейс работы с данными 
+if not check_type(SimpleDataWorker, IDataWorker):
+    raise Exception('используется некорректный интерфейс для работы с данными')
+
+# реализация БЛ
 @app.route('/users', 'POST')
 def handle_post_users(req):
     """
@@ -13,14 +26,15 @@ def handle_post_users(req):
     :param req: объект запроса
     :return: объект ответа
     """
-    user_id = len(_users) + 1
-    _users[user_id] = {'id': user_id,
-                            'name': req.query['name'][0],
-                            'age': req.query['age'][0]}
+    
+    data = {'name': req.query['name'][0],
+            'age': req.query['age'][0]}
+
+    SimpleDataWorker.save_data(data)
     return Response(204, 'Created')
 
 @app.route('/users', 'GET')
-def handle_get_users(self, req):
+def handle_get_users(req):
     """
     обработка запроса на получение всех пользователей
     :param req: объект запроса
@@ -30,16 +44,16 @@ def handle_get_users(self, req):
     if 'text/html' in accept:
         content_type = 'text/html; charset=utf-8'
         body = '<html><head></head><body>'
-        body += f'<div>Пользователи ({len(self._users)})</div>'
+        body += f'<div>Пользователи ({len(SimpleDataWorker.load_data())})</div>'
         body += '<ul>'
-        for u in self._users.values():
+        for u in SimpleDataWorker.load_data().values():
             body += f'<li>#{u["id"]} {u["name"]}, {u["age"]}</li>'
         body += '</ul>'
         body += '</body></html>'
 
     elif 'application/json' in accept:
         content_type = 'application/json; charset=utf-8'
-        body = json.dumps(self._users)
+        body = json.dumps(SimpleDataWorker.load_data())
 
     else:
         return Response(406, 'Not Acceptable')
