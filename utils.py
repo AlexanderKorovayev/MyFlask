@@ -27,17 +27,17 @@ def check_type(obj, base_type):
 class Test:
     # пока храним в поле класса, но надо будет это поменять потому что каждый экземпляр будет переписывать данные, например хранить в базе
     route_map = {}
-    def route(self, path):
+    def route(self, path, method='GET'):
         def inner_route(f):
-            Test.route_map[path] = f.__name__
+            Test.route_map[(path, method)] = f.__name__
             def inner_inner_route(*args, **kwargs):
                 rez = f(*args, **kwargs)
                 return rez
             return inner_inner_route
         return inner_route
 
-    def test(self, path):
-        func = Test.route_map.get(path)
+    def test(self, path, method='GET'):
+        func = Test.route_map.get((path, method))
         print(globals().get(func)())
 
 test = Test()
