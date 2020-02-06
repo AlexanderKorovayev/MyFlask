@@ -41,8 +41,8 @@ class IServer:
         :param conn: соединение с клиентом
         """
         try:
-            req = self.parse_request(conn)
-            resp = self.handle_request(req)
+            self.parse_request(conn)
+            resp = self.handle_request()
             self.send_response(conn, resp)
         except ConnectionResetError:
             conn = None

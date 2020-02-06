@@ -5,9 +5,8 @@
 from interfaces.i_server import IServer
 from interfaces.i_response import Response
 from base_errors.http_errors import HTTPError
-from implementations.http_server.http_request import Request
+from implementations.my_flask.http_server.http_request import Request
 from email.parser import Parser
-import json
 
 
 class HTTPServer(IServer):
@@ -33,7 +32,7 @@ class HTTPServer(IServer):
             raise Exception('Bad request')
         if host not in (self._server_name, f'{self._server_name}:{self._port}'):
             raise HTTPError(404, 'Not found')
-        return Request(method, target, ver, headers, self._rfile)
+        Request.set_data(method, target, ver, headers, self._rfile)
 
     def _parse_request_line(self):
         """
@@ -82,11 +81,10 @@ class HTTPServer(IServer):
         str_headers = b''.join(headers).decode('iso-8859-1')
         return Parser().parsestr(str_headers)
 
-    def handle_request(self, req):
+    def handle_request(self):
         """
         обработка запроса от клиента
         метод имеет поведение по умолчанию, которое необходимо переопределить бизнес логикой
-        :param req: объект запроса
         :return: данные для клиента
         """
         return Response(200, 'OK')

@@ -10,22 +10,32 @@ class IRequest:
     """
     класс объект запроса
     """
-    def __init__(self, method, target, version, headers, rfile):
-        self.method = method
-        self.target = target
-        self.version = version
-        self.headers = headers
-        self.rfile = rfile
 
-    def body(self):
+    _method = None
+    _target = None
+    _version = None
+    _headers = None
+    _rfile = None
+
+    @staticmethod
+    def set_data(method, target, version, headers, rfile):
+        _method = method
+        _target = target
+        _version = version
+        _headers = headers
+        _rfile = rfile
+
+    @staticmethod
+    def body():
         """
         метод получения тела запроса
         """
         raise NotImplementedError
 
+    @staticmethod
     @property
     @lru_cache(maxsize=None)
-    def url(self):
+    def url():
         """
         метод для парсинга таргета
         """

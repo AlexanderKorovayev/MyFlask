@@ -4,11 +4,11 @@ import json
 from implementations.my_flask.simple_data_worker import SimpleDataWorker
 from interfaces.i_data_worker import IDataWorker
 from utils import check_type
+from implementations.my_flask.http_server.http_request import Request
 
 
 #TODO функции должны иметь доступ к данным  реквеста а не принимать их в аргументе. 
 # во фласке вроде было сделано так что ты импортируешь этот объект и он всегда наполнен данными реквеста, надо погуглить и подумать как сделать так же
-
 
 
 # инициализация фласка
@@ -20,27 +20,26 @@ if not check_type(SimpleDataWorker, IDataWorker):
 
 # реализация БЛ
 @app.route('/users', 'POST')
-def handle_post_users(req):
+def handle_post_users():
     """
     обработка запроса на создание пользователя
-    :param req: объект запроса
     :return: объект ответа
     """
     
-    data = {'name': req.query['name'][0],
-            'age': req.query['age'][0]}
+    data = {'name': Request.query['name'][0],
+            'age': Request.query['age'][0]}
 
     SimpleDataWorker.save_data(data)
     return Response(204, 'Created')
 
+
 @app.route('/users', 'GET')
-def handle_get_users(req):
+def handle_get_users():
     """
     обработка запроса на получение всех пользователей
-    :param req: объект запроса
     :return: объект ответа
     """
-    accept = req.headers.get('Accept')
+    accept = Request.headers.get('Accept')
     if 'text/html' in accept:
         content_type = 'text/html; charset=utf-8'
         body = '<html><head></head><body>'
@@ -60,7 +59,7 @@ def handle_get_users(req):
 
     body = body.encode('utf-8')
     headers = [('Content-Type', content_type),
-                ('Content-Length', len(body))]
+               ('Content-Length', len(body))]
     return Response(200, 'OK', headers, body)
 
 # как реализовать это пока хз

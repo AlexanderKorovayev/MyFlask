@@ -1,5 +1,6 @@
 from interfaces.i_data_worker import IDataWorker
 
+
 class SimpleDataWorker(IDataWorker):
     __data = {}
     __user_id = 1
