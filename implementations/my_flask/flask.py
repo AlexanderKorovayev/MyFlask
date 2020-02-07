@@ -5,7 +5,7 @@
 
 from implementations.my_flask.http_server import http_server
 from base_errors.http_errors import HTTPError
-from implementations.my_flask.http_server.http_request import Request
+from implementations.my_flask.request import Request
 
 
 class Flask(http_server.HTTPServer):
@@ -25,20 +25,25 @@ class Flask(http_server.HTTPServer):
                 return rez
             return inner_inner_route
         return inner_route
-
-    def run(self):
-        self.serve_forever()
     
     def handle_request(self):
         """
         обработка запроса от клиента
         :return: данные для клиента
         """
+        print('IN HANDLE')
+        print(Request.path)
         path = Request.path
+        print("PATH IS " + path)
         method = Request.method
+        print("METHOD IS " + method)
         func_name = Flask.route_map.get((path, method))
         if not func_name:
             raise HTTPError(404, 'Not found')
+        print("FUNC NAME IS " + func_name)
         result = globals().get(func_name)()
+        print("RESULT IS \n" + result)
         return result
 
+    def run(self):
+        self.serve_forever()

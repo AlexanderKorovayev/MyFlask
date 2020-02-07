@@ -4,7 +4,7 @@ import json
 from implementations.my_flask.simple_data_worker import SimpleDataWorker
 from interfaces.i_data_worker import IDataWorker
 from utils import check_type
-from implementations.my_flask.http_server.http_request import Request
+from implementations.my_flask.request import Request
 
 
 #TODO функции должны иметь доступ к данным  реквеста а не принимать их в аргументе. 
@@ -12,7 +12,7 @@ from implementations.my_flask.http_server.http_request import Request
 
 
 # инициализация фласка
-app = flask.Flask(2000)
+app = flask.Flask(2001)
 
 # проверяем подходит ли нам интерфейс работы с данными 
 if not check_type(SimpleDataWorker, IDataWorker):

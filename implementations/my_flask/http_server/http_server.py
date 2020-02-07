@@ -5,7 +5,7 @@
 from interfaces.i_server import IServer
 from interfaces.i_response import Response
 from base_errors.http_errors import HTTPError
-from implementations.my_flask.http_server.http_request import Request
+from implementations.my_flask.request import Request
 from email.parser import Parser
 
 
@@ -32,7 +32,11 @@ class HTTPServer(IServer):
             raise Exception('Bad request')
         if host not in (self._server_name, f'{self._server_name}:{self._port}'):
             raise HTTPError(404, 'Not found')
+        print("PARSE REQUEST IS")
         Request.set_data(method, target, ver, headers, self._rfile)
+        print(Request.path)
+        print(Request.url)
+        print(Request.query)
 
     def _parse_request_line(self):
         """
