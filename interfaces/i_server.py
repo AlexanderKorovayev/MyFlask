@@ -47,12 +47,15 @@ class IServer:
             resp = self.handle_request()
             print(resp)
             self.send_response(conn, resp)
+            print('!!!')
         except ConnectionResetError:
             conn = None
         except Exception as e:
             self.send_error(conn, e)
+            print(e)
 
         if conn:
+            print('CLOSE CONNECT')
             conn.close()
 
     def parse_request(self, conn):
@@ -63,7 +66,7 @@ class IServer:
         """
         raise NotImplementedError
 
-    def handle_request(self, req):
+    def handle_request(self):
         """
         обработка запроса от клиента
         :param req: объект запроса

@@ -33,10 +33,17 @@ class HTTPServer(IServer):
         if host not in (self._server_name, f'{self._server_name}:{self._port}'):
             raise HTTPError(404, 'Not found')
         print("PARSE REQUEST IS")
+        print("method is " + method)
+        print("target is " + target)
+        print("version is " + ver)
+        print("host is " + str(host))
         Request.set_data(method, target, ver, headers, self._rfile)
-        print(Request.path)
-        print(Request.url)
-        print(Request.query)
+        print("url is " + str(Request.url()))
+        print(str(type(Request.url())))
+        print("path is " + str(Request.path()))
+        print(str(type(Request.path())))
+        print("query is " + str(Request.query()))
+        print(str(type(Request.query())))
 
     def _parse_request_line(self):
         """
@@ -99,11 +106,19 @@ class HTTPServer(IServer):
         :param conn: сокет
         :param resp: объект ответа
         """
+
+        print('IN RESPONSE')
+
+
         wfile = conn.makefile('wb')
         status_line = f'HTTP/1.1 {resp.status} {resp.reason}\r\n'
+
+        print('STATUS LINE IS \n' + str(status_line))
+
         wfile.write(status_line.encode('iso-8859-1'))
 
         if resp.headers:
+            print('HEADERS IS \n' + str(resp.headers))
             for (key, value) in resp.headers:
                 header_line = f'{key}: {value}\r\n'
                 wfile.write(header_line.encode('iso-8859-1'))
@@ -115,6 +130,8 @@ class HTTPServer(IServer):
 
         wfile.flush()
         wfile.close()
+
+        print('FINISH SEND RESPONSE')
 
     def send_error(self, conn, err):
         """

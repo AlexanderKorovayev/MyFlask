@@ -11,19 +11,19 @@ class IRequest:
     класс объект запроса
     """
 
-    _method = None
+    method = None
     _target = None
-    _version = None
-    _headers = None
+    version = None
+    headers = None
     _rfile = None
 
     @staticmethod
     def set_data(method, target, version, headers, rfile):
-        _method = method
-        _target = target
-        _version = version
-        _headers = headers
-        _rfile = rfile
+        IRequest.method = method
+        IRequest._target = target
+        IRequest.version = version
+        IRequest.headers = headers
+        IRequest._rfile = rfile
 
     @staticmethod
     def body():
@@ -33,7 +33,6 @@ class IRequest:
         raise NotImplementedError
 
     @staticmethod
-    @property
     @lru_cache(maxsize=None)
     def url():
         """

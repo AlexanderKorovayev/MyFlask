@@ -26,8 +26,8 @@ def handle_post_users():
     :return: объект ответа
     """
     
-    data = {'name': Request.query['name'][0],
-            'age': Request.query['age'][0]}
+    data = {'name': Request.query()['name'][0],
+            'age': Request.query()['age'][0]}
 
     SimpleDataWorker.save_data(data)
     return Response(204, 'Created')
@@ -44,7 +44,9 @@ def handle_get_users():
         content_type = 'text/html; charset=utf-8'
         body = '<html><head></head><body>'
         body += f'<div>Пользователи ({len(SimpleDataWorker.load_data())})</div>'
+        print(len(SimpleDataWorker.load_data()))
         body += '<ul>'
+        print(SimpleDataWorker.load_data().values())
         for u in SimpleDataWorker.load_data().values():
             body += f'<li>#{u["id"]} {u["name"]}, {u["age"]}</li>'
         body += '</ul>'

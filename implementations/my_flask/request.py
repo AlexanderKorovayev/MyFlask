@@ -13,22 +13,19 @@ class Request(IRequest):
         size = Request.headers.get('Content-Length')
         if not size:
             return None
-        return Request.rfile.read(size)
+        return Request._rfile.read(size)
 
     @staticmethod
-    @property
     @lru_cache(maxsize=None)
     def url():
-        return urlparse(Request.target)
+        return urlparse(Request._target)
 
     @staticmethod
-    @property
     def path():
-        return Request.url.path
+        return Request.url().path
 
     @staticmethod
-    @property
     @lru_cache(maxsize=None)
     def query():
-        return parse_qs(Request.url.query)
+        return parse_qs(Request.url().query)
 
