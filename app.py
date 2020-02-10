@@ -1,18 +1,12 @@
 from implementations.my_flask import flask
 from interfaces.i_response import Response
 import json
-from implementations.my_flask.simple_data_worker import SimpleDataWorker
-from interfaces.i_data_worker import IDataWorker
-from utils import check_type
+from implementations.my_flask.session import Session
 from implementations.my_flask.request import Request
 
 
 # инициализация фласка
 app = flask.Flask(2000)
-
-# проверяем подходит ли нам интерфейс работы с данными 
-if not check_type(SimpleDataWorker, IDataWorker):
-    raise Exception('используется некорректный интерфейс для работы с данными')
 
 # реализация БЛ
 @app.route('/users', 'POST')
@@ -25,7 +19,7 @@ def handle_post_users():
     data = {'name': Request.query()['name'][0],
             'age': Request.query()['age'][0]}
 
-    SimpleDataWorker.save_data(data)
+    Session.save_data(data)
     return Response(204, 'Created')
 
 
@@ -40,11 +34,11 @@ def handle_get_users():
         print("IN text/html")
         content_type = 'text/html; charset=utf-8'
         body = '<html><head></head><body>'
-        body += f'<div>Пользователи ({len(SimpleDataWorker.load_data())})</div>'
-        print(len(SimpleDataWorker.load_data()))
+        body += f'<div>Пользователи ({len(Session.load_data())})</div>'
+        print(len(Session.load_data()))
         body += '<ul>'
-        print(SimpleDataWorker.load_data().items())
-        for k, v in SimpleDataWorker.load_data().items():
+        print(Session.load_data().items())
+        for k, v in Session.load_data().items():
             print("TEST555")
             body += f'<li>#{k} {v["name"]}, {v["age"]}</li>'
         body += '</ul>'
@@ -53,7 +47,7 @@ def handle_get_users():
     elif 'application/json' in accept:
         print("IN application/json")
         content_type = 'application/json; charset=utf-8'
-        body = json.dumps(SimpleDataWorker.load_data())
+        body = json.dumps(Session.load_data())
 
     else:
         print("NO ACCEPTIBLE")
@@ -63,7 +57,6 @@ def handle_get_users():
     headers = [('Content-Type', content_type),
                ('Content-Length', len(body))]
     print('FINISH HANDLE GET USERS')
-    #print(str(body))
     return Response(200, 'OK', headers, body)
 
 # как реализовать это пока хз

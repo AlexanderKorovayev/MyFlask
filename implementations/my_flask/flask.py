@@ -6,9 +6,13 @@
 from implementations.my_flask.http_server import http_server
 from base_errors.http_errors import HTTPError
 from implementations.my_flask.request import Request
+from implementations.my_flask.session import Session
+from interfaces.i_data_worker import IDataWorker
+from interfaces.i_request import IRequest
 import inspect
 import importlib
 import platform
+import utils
 
 
 class Flask(http_server.HTTPServer):
@@ -20,10 +24,17 @@ class Flask(http_server.HTTPServer):
     def __init__(self, port, host_name='localhost', server_name='localhost'):
         super().__init__(host_name, port, server_name)
         self.os_name = platform.system()
+
         if self.os_name == 'Windows':
             Flask.handle_module_path =inspect.stack()[-1].filename.split("\\")[-1].split('.py')[0]
         if self.os_name == 'Linux':
             Flask.handle_module_path =inspect.stack()[-1].filename.split("/")[-1].split('.py')[0]
+
+        # проверяем что основные объекты подходят для работы с фласком
+        if not(utils.check_type(Session, IDataWorker)):
+            raise Exception('Session не соответствует заданным стандартам IDataWorker')
+        if not(utils.check_type(Request, IRequest)):
+            raise Exception('Request не соответствует заданным стандартам IRequest')
 
     def route(self, path, method='GET'):
         def inner_route(f):
