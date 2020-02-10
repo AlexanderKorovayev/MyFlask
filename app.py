@@ -7,12 +7,8 @@ from utils import check_type
 from implementations.my_flask.request import Request
 
 
-#TODO функции должны иметь доступ к данным  реквеста а не принимать их в аргументе. 
-# во фласке вроде было сделано так что ты импортируешь этот объект и он всегда наполнен данными реквеста, надо погуглить и подумать как сделать так же
-
-
 # инициализация фласка
-app = flask.Flask(2001)
+app = flask.Flask(2000)
 
 # проверяем подходит ли нам интерфейс работы с данными 
 if not check_type(SimpleDataWorker, IDataWorker):
@@ -41,27 +37,33 @@ def handle_get_users():
     """
     accept = Request.headers.get('Accept')
     if 'text/html' in accept:
+        print("IN text/html")
         content_type = 'text/html; charset=utf-8'
         body = '<html><head></head><body>'
         body += f'<div>Пользователи ({len(SimpleDataWorker.load_data())})</div>'
         print(len(SimpleDataWorker.load_data()))
         body += '<ul>'
-        print(SimpleDataWorker.load_data().values())
-        for u in SimpleDataWorker.load_data().values():
-            body += f'<li>#{u["id"]} {u["name"]}, {u["age"]}</li>'
+        print(SimpleDataWorker.load_data().items())
+        for k, v in SimpleDataWorker.load_data().items():
+            print("TEST555")
+            body += f'<li>#{k} {v["name"]}, {v["age"]}</li>'
         body += '</ul>'
         body += '</body></html>'
 
     elif 'application/json' in accept:
+        print("IN application/json")
         content_type = 'application/json; charset=utf-8'
         body = json.dumps(SimpleDataWorker.load_data())
 
     else:
+        print("NO ACCEPTIBLE")
         return Response(406, 'Not Acceptable')
 
     body = body.encode('utf-8')
     headers = [('Content-Type', content_type),
                ('Content-Length', len(body))]
+    print('FINISH HANDLE GET USERS')
+    #print(str(body))
     return Response(200, 'OK', headers, body)
 
 # как реализовать это пока хз

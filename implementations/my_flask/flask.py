@@ -8,21 +8,28 @@ from base_errors.http_errors import HTTPError
 from implementations.my_flask.request import Request
 import inspect
 import importlib
+import platform
+
 
 class Flask(http_server.HTTPServer):
-    # мы наследуем сервер и расширяем его добавляя обработку данных сервером, в сервере обработка данных не должна быть реализована
-    #TODO пока храним в поле класса, но надо будет это поменять потому что каждый экземпляр будет переписывать данные, например хранить в базе
+    # TODO пока храним в поле класса, но надо будет это поменять потому что каждый экземпляр будет переписывать данные, например хранить в базе
+    # TODO сделать агрегацию с классом по хранению данных
     route_map = {}
     handle_module_path = None
 
     def __init__(self, port, host_name='localhost', server_name='localhost'):
         super().__init__(host_name, port, server_name)
-        Flask.handle_module_path =inspect.stack()[-1].filename.split("\\")[-1].split('.py')[0]
+        self.os_name = platform.system()
+        if self.os_name == 'Windows':
+            Flask.handle_module_path =inspect.stack()[-1].filename.split("\\")[-1].split('.py')[0]
+        if self.os_name == 'Linux':
+            Flask.handle_module_path =inspect.stack()[-1].filename.split("/")[-1].split('.py')[0]
 
     def route(self, path, method='GET'):
         def inner_route(f):
             Flask.route_map[(path, method)] = f.__name__
             Flask.handle_request_module = inspect.getmodule(f)
+
             def inner_inner_route(*args, **kwargs):
                 rez = f(*args, **kwargs)
                 return rez

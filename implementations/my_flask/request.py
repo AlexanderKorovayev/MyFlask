@@ -1,5 +1,4 @@
 from interfaces.i_request import IRequest
-from functools import lru_cache
 from urllib.parse import parse_qs, urlparse
 
 
@@ -16,7 +15,6 @@ class Request(IRequest):
         return Request._rfile.read(size)
 
     @staticmethod
-    @lru_cache(maxsize=None)
     def url():
         return urlparse(Request._target)
 
@@ -25,7 +23,6 @@ class Request(IRequest):
         return Request.url().path
 
     @staticmethod
-    @lru_cache(maxsize=None)
     def query():
         return parse_qs(Request.url().query)
 
