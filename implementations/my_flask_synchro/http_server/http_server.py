@@ -3,22 +3,20 @@
 """
 
 from interfaces.i_server import IServer
-from interfaces.i_response import Response
 from base_errors.http_errors import HTTPError
-from implementations.my_flask.request import Request
 from email.parser import Parser
 
 
 class HTTPServer(IServer):
 
-    MAX_LINE = 64 * 1024  # http протокол не обязывает ограничивать длинну строк реквест лайна,
+    _MAX_LINE = 64 * 1024  # http протокол не обязывает ограничивать длинну строк реквест лайна,
     # но обычно сервера ограничивают
-    MAX_HEADERS = 100  # в целом http протокол не обязывает ограничивать длинну хидера, но обычно сервера ограничивают
+    _MAX_HEADERS = 100  # в целом http протокол не обязывает ограничивать длинну хидера, но обычно сервера ограничивают
 
-    def __init__(self, host_name, port_id, server_name):
-        super().__init__(host_name, port_id, server_name)
+    def __init__(self, host_name, port_id, server_name, request, response):
+        super().__init__(host_name, port_id, server_name, request, response)
 
-    def parse_request(self, conn):
+    def _parse_request(self, conn):
         """
         разбор запроса от клиента
         :param conn: сокет
@@ -30,29 +28,29 @@ class HTTPServer(IServer):
         host = headers.get('Host')
         if not host:
             raise Exception('Bad request')
-        if host not in (self._server_name, f'{self._server_name}:{self._port}'):
+        if host not in (self.server_name, f'{self.server_name}:{self.port}'):
             raise HTTPError(404, 'Not found')
         print("PARSE REQUEST IS")
         print("method is " + method)
         print("target is " + target)
         print("version is " + ver)
         print("host is " + str(host))
-        Request.set_data(method, target, ver, headers, self._rfile)
-        print("url is " + str(Request.url()))
-        print(str(type(Request.url())))
-        print("path is " + str(Request.path()))
-        print(str(type(Request.path())))
-        print("query is " + str(Request.query()))
-        print(str(type(Request.query())))
+        self._request.set_data(method, target, ver, headers, self._rfile)
+        print("url is " + str(self._request.url()))
+        print(str(type(self._request.url())))
+        print("path is " + str(self._request.path()))
+        print(str(type(self._request.path())))
+        print("query is " + str(self._request.query()))
+        print(str(type(self._request.query())))
 
     def _parse_request_line(self):
         """
         разбор реквест лайна
         :return: метод запроса, путь запроса, версия протокола
         """
-        raw = self._rfile.readline(HTTPServer.MAX_LINE + 1)
+        raw = self._rfile.readline(HTTPServer._MAX_LINE + 1)
 
-        if len(raw) > HTTPServer.MAX_LINE:
+        if len(raw) > HTTPServer._MAX_LINE:
             raise Exception('Request line is too long')
 
         req_line = str(raw, 'iso-8859-1')
@@ -77,8 +75,8 @@ class HTTPServer(IServer):
         """
         headers = []
         while True:
-            line = self._rfile.readline(HTTPServer.MAX_LINE + 1)
-            if len(line) > HTTPServer.MAX_LINE:
+            line = self._rfile.readline(HTTPServer._MAX_LINE + 1)
+            if len(line) > HTTPServer._MAX_LINE:
                 raise Exception('Header line is too long')
 
             # проверка на окончание блока с заголовками
@@ -86,54 +84,53 @@ class HTTPServer(IServer):
                 break
 
             headers.append(line)
-            if len(headers) > HTTPServer.MAX_HEADERS:
+            if len(headers) > HTTPServer._MAX_HEADERS:
                 raise Exception('Too many headers')
 
         str_headers = b''.join(headers).decode('iso-8859-1')
         return Parser().parsestr(str_headers)
 
-    def handle_request(self):
+    def _handle_request(self):
         """
         обработка запроса от клиента
         метод имеет поведение по умолчанию, которое необходимо переопределить бизнес логикой
         :return: данные для клиента
         """
-        return Response(200, 'OK')
+        return self.response(200, 'OK')
 
-    def send_response(self, conn, resp):
+    def _send_response(self, conn):
         """
         Отправка ответа клиенту
         :param conn: сокет
-        :param resp: объект ответа
         """
 
         print('IN RESPONSE')
 
 
         wfile = conn.makefile('wb')
-        status_line = f'HTTP/1.1 {resp.status} {resp.reason}\r\n'
+        status_line = f'HTTP/1.1 {self._response.status} {self._response.reason}\r\n'
 
         print('STATUS LINE IS \n' + str(status_line))
 
         wfile.write(status_line.encode('iso-8859-1'))
 
-        if resp.headers:
-            print('HEADERS IS \n' + str(resp.headers))
-            for (key, value) in resp.headers:
+        if self._response.headers:
+            print('HEADERS IS \n' + str(self._response.headers))
+            for (key, value) in self._response.headers:
                 header_line = f'{key}: {value}\r\n'
                 wfile.write(header_line.encode('iso-8859-1'))
 
         wfile.write(b'\r\n')
 
-        if resp.body:
-            wfile.write(resp.body)
+        if self._response.body:
+            wfile.write(self._response.body)
 
         wfile.flush()
         wfile.close()
 
         print('FINISH SEND RESPONSE')
 
-    def send_error(self, conn, err):
+    def _send_error(self, conn, err):
         """
         конструирование объекта ошибки и его отправка
         :param conn: сокет
@@ -147,7 +144,7 @@ class HTTPServer(IServer):
             status = 500
             reason = b'Internal Server Error'
             body = b'Internal Server Error'
-        resp = Response(status, reason,
-                        [('Content-Length', len(body))],
-                        body)
+        resp = self._response(status, reason,
+                              [('Content-Length', len(body))],
+                              body)
         self.send_response(conn, resp)

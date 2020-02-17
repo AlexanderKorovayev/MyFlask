@@ -1,8 +1,8 @@
-from implementations.my_flask import flask
-from interfaces.i_response import Response
+from implementations.my_flask_synchro import flask
+from implementations.my_flask_synchro.response import response
 import json
-from implementations.my_flask.session import Session
-from implementations.my_flask.request import Request
+from implementations.my_flask_synchro.session import session
+from implementations.my_flask_synchro.request import request
 
 
 # инициализация фласка
@@ -16,11 +16,11 @@ def handle_post_users():
     :return: объект ответа
     """
     
-    data = {'name': Request.query()['name'][0],
-            'age': Request.query()['age'][0]}
+    data = {'name': request.query()['name'][0],
+            'age': request.query()['age'][0]}
 
-    Session.save_data(data)
-    return Response(204, 'Created')
+    session.save_data(data)
+    return response(204, 'Created')
 
 
 @app.route('/users', 'GET')
@@ -29,16 +29,16 @@ def handle_get_users():
     обработка запроса на получение всех пользователей
     :return: объект ответа
     """
-    accept = Request.headers.get('Accept')
+    accept = request.headers.get('Accept')
     if 'text/html' in accept:
         print("IN text/html")
         content_type = 'text/html; charset=utf-8'
         body = '<html><head></head><body>'
-        body += f'<div>Пользователи ({len(Session.load_data())})</div>'
-        print(len(Session.load_data()))
+        body += f'<div>Пользователи ({len(session.load_data())})</div>'
+        print(len(session.load_data()))
         body += '<ul>'
-        print(Session.load_data().items())
-        for k, v in Session.load_data().items():
+        print(session.load_data().items())
+        for k, v in session.load_data().items():
             print("TEST555")
             body += f'<li>#{k} {v["name"]}, {v["age"]}</li>'
         body += '</ul>'
@@ -47,17 +47,17 @@ def handle_get_users():
     elif 'application/json' in accept:
         print("IN application/json")
         content_type = 'application/json; charset=utf-8'
-        body = json.dumps(Session.load_data())
+        body = json.dumps(session.load_data())
 
     else:
         print("NO ACCEPTIBLE")
-        return Response(406, 'Not Acceptable')
+        return response(406, 'Not Acceptable')
 
     body = body.encode('utf-8')
     headers = [('Content-Type', content_type),
                ('Content-Length', len(body))]
     print('FINISH HANDLE GET USERS')
-    return Response(200, 'OK', headers, body)
+    return response(200, 'OK', headers, body)
 
 # как реализовать это пока хз
 '''

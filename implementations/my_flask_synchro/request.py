@@ -7,22 +7,20 @@ class Request(IRequest):
     класс объект запроса
     """
 
-    @staticmethod
-    def body():
-        size = Request.headers.get('Content-Length')
+    def body(self):
+        size = self.headers.get('Content-Length')
         if not size:
             return None
-        return Request._rfile.read(size)
+        return self._rfile.read(size)
 
-    @staticmethod
-    def url():
-        return urlparse(Request._target)
+    def url(self):
+        return urlparse(self._target)
 
-    @staticmethod
-    def path():
-        return Request.url().path
+    def path(self):
+        return self.url().path
 
-    @staticmethod
-    def query():
-        return parse_qs(Request.url().query)
+    def query(self):
+        return parse_qs(self.url().query)
 
+
+request = Request()

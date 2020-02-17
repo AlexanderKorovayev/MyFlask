@@ -7,18 +7,20 @@ from interfaces.i_data_worker import IDataWorker
 
 class Session(IDataWorker):
 
-    _container = {}
-    _id = 1
+    def __init__(self):
+        super().__init__()
+        self._container = {}
+        self._id = 1
 
-    @staticmethod
-    def save_data(data):
-        Session._container[Session._id] = data
-        Session._id += 1
+    def save_data(self, data):
+        self._container[self._id] = data
+        self._id += 1
 
-    @staticmethod
-    def load_data():
-        return Session._container
+    def load_data(self):
+        return self._container
 
-    @staticmethod
-    def load_data_by_id(id_data):
-        return Session._container.get(id_data)
+    def load_data_by_id(self, id_data):
+        return self._container.get(id_data)
+
+
+session = Session()

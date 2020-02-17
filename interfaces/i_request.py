@@ -3,39 +3,50 @@
 """
 
 
-from functools import lru_cache
-
-
 class IRequest:
     """
     класс объект запроса
     """
 
-    method = None
-    _target = None
-    version = None
-    headers = None
-    _rfile = None
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(IRequest, cls).__new__(cls)
+        return cls.instance
 
-    @staticmethod
-    def set_data(method, target, version, headers, rfile):
-        IRequest.method = method
-        IRequest._target = target
-        IRequest.version = version
-        IRequest.headers = headers
-        IRequest._rfile = rfile
+    def __init__(self):
+        self.method = None
+        self.version = None
+        self.headers = None
+        self._target = None
+        self._rfile = None
 
-    @staticmethod
-    def body():
+    def set_data(self, method, target, version, headers, rfile):
+        self.method = method
+        self._target = target
+        self.version = version
+        self.headers = headers
+        self._rfile = rfile
+
+    def body(self):
         """
         метод получения тела запроса
         """
         raise NotImplementedError
 
-    @staticmethod
-    @lru_cache(maxsize=None)
-    def url():
+    def url(self):
         """
         метод для парсинга таргета
+        """
+        raise NotImplementedError
+
+    def path(self):
+        """
+        метод получения пути из url
+        """
+        raise NotImplementedError
+
+    def query(self):
+        """
+        метод получения параметров запроса
         """
         raise NotImplementedError

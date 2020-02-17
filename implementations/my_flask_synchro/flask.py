@@ -3,12 +3,12 @@
 """
 
 
-from implementations.my_flask.http_server import http_server
+from implementations.my_flask_synchro.http_server import http_server
 from base_errors.http_errors import HTTPError
-from implementations.my_flask.request import Request
-from implementations.my_flask.session import Session
+from implementations.my_flask_synchro.request import request
+from implementations.my_flask_synchro.response import response
+from implementations.my_flask_synchro.session import session
 from interfaces.i_data_worker import IDataWorker
-from interfaces.i_request import IRequest
 import inspect
 import importlib
 import platform
@@ -17,29 +17,26 @@ import utils
 
 class Flask(http_server.HTTPServer):
     # TODO пока храним в поле класса, но надо будет это поменять потому что каждый экземпляр будет переписывать данные, например хранить в базе
-    # TODO сделать агрегацию с классом по хранению данных
-    route_map = {}
-    handle_module_path = None
+    _ROUTE_MAP = {}
+    _HANDLE_MODULE_PATH = None
 
     def __init__(self, port, host_name='localhost', server_name='localhost'):
-        super().__init__(host_name, port, server_name)
+        super().__init__(host_name, port, server_name, request, response)
         self.os_name = platform.system()
 
         if self.os_name == 'Windows':
-            Flask.handle_module_path =inspect.stack()[-1].filename.split("\\")[-1].split('.py')[0]
+            Flask._HANDLE_MODULE_PATH = inspect.stack()[-1].filename.split("\\")[-1].split('.py')[0]
         if self.os_name == 'Linux':
-            Flask.handle_module_path =inspect.stack()[-1].filename.split("/")[-1].split('.py')[0]
+            Flask._HANDLE_MODULE_PATH = inspect.stack()[-1].filename.split("/")[-1].split('.py')[0]
 
         # проверяем что основные объекты подходят для работы с фласком
-        if not(utils.check_type(Session, IDataWorker)):
+        if not(utils.check_type(session, IDataWorker)):
             raise Exception('Session не соответствует заданным стандартам IDataWorker')
-        if not(utils.check_type(Request, IRequest)):
-            raise Exception('Request не соответствует заданным стандартам IRequest')
 
     def route(self, path, method='GET'):
         def inner_route(f):
-            Flask.route_map[(path, method)] = f.__name__
-            Flask.handle_request_module = inspect.getmodule(f)
+            Flask._ROUTE_MAP[(path, method)] = f.__name__
+            Flask._HANDLE_MODULE_PATH = inspect.getmodule(f)
 
             def inner_inner_route(*args, **kwargs):
                 rez = f(*args, **kwargs)
@@ -53,15 +50,15 @@ class Flask(http_server.HTTPServer):
         :return: данные для клиента
         """
         print('IN HANDLE')
-        path = Request.path()
+        path = self._request.path()
         print("PATH IS " + str(path))
-        method = Request.method
+        method = self._request.method
         print("METHOD IS " + method)
-        func_name = Flask.route_map.get((path, method))
+        func_name = Flask._ROUTE_MAP.get((path, method))
         if not func_name:
             raise HTTPError(404, 'Not found')
         print("FUNC NAME IS " + func_name)
-        bl_module = importlib.import_module(Flask.handle_module_path)
+        bl_module = importlib.import_module(Flask._HANDLE_MODULE_PATH)
         result = getattr(bl_module, func_name)()
         print("RESULT IS \n" + str(result))
         return result
