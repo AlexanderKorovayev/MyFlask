@@ -30,18 +30,7 @@ class HTTPServer(IServer):
             raise Exception('Bad request')
         if host not in (self.server_name, f'{self.server_name}:{self.port}'):
             raise HTTPError(404, 'Not found')
-        print("PARSE REQUEST IS")
-        print("method is " + method)
-        print("target is " + target)
-        print("version is " + ver)
-        print("host is " + str(host))
         self._request.set_data(method, target, ver, headers, self._rfile)
-        print("url is " + str(self._request.url()))
-        print(str(type(self._request.url())))
-        print("path is " + str(self._request.path()))
-        print(str(type(self._request.path())))
-        print("query is " + str(self._request.query()))
-        print(str(type(self._request.query())))
 
     def _parse_request_line(self):
         """
@@ -96,7 +85,7 @@ class HTTPServer(IServer):
         метод имеет поведение по умолчанию, которое необходимо переопределить бизнес логикой
         :return: данные для клиента
         """
-        return self.response(200, 'OK')
+        self._response.set_data(200, 'OK')
 
     def _send_response(self, conn):
         """
@@ -104,18 +93,12 @@ class HTTPServer(IServer):
         :param conn: сокет
         """
 
-        print('IN RESPONSE')
-
-
         wfile = conn.makefile('wb')
         status_line = f'HTTP/1.1 {self._response.status} {self._response.reason}\r\n'
-
-        print('STATUS LINE IS \n' + str(status_line))
 
         wfile.write(status_line.encode('iso-8859-1'))
 
         if self._response.headers:
-            print('HEADERS IS \n' + str(self._response.headers))
             for (key, value) in self._response.headers:
                 header_line = f'{key}: {value}\r\n'
                 wfile.write(header_line.encode('iso-8859-1'))
@@ -127,8 +110,6 @@ class HTTPServer(IServer):
 
         wfile.flush()
         wfile.close()
-
-        print('FINISH SEND RESPONSE')
 
     def _send_error(self, conn, err):
         """
@@ -144,7 +125,5 @@ class HTTPServer(IServer):
             status = 500
             reason = b'Internal Server Error'
             body = b'Internal Server Error'
-        resp = self._response(status, reason,
-                              [('Content-Length', len(body))],
-                              body)
-        self.send_response(conn, resp)
+        self._response.set_data(status, reason, [('Content-Length', len(body))], body)
+        self._send_response(conn)

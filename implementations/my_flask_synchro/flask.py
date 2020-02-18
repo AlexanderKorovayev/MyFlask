@@ -36,7 +36,6 @@ class Flask(http_server.HTTPServer):
     def route(self, path, method='GET'):
         def inner_route(f):
             Flask._ROUTE_MAP[(path, method)] = f.__name__
-            Flask._HANDLE_MODULE_PATH = inspect.getmodule(f)
 
             def inner_inner_route(*args, **kwargs):
                 rez = f(*args, **kwargs)
@@ -44,24 +43,20 @@ class Flask(http_server.HTTPServer):
             return inner_inner_route
         return inner_route
     
-    def handle_request(self):
+    def _handle_request(self):
         """
         обработка запроса от клиента
         :return: данные для клиента
         """
-        print('IN HANDLE')
+
         path = self._request.path()
-        print("PATH IS " + str(path))
         method = self._request.method
-        print("METHOD IS " + method)
         func_name = Flask._ROUTE_MAP.get((path, method))
         if not func_name:
             raise HTTPError(404, 'Not found')
-        print("FUNC NAME IS " + func_name)
         bl_module = importlib.import_module(Flask._HANDLE_MODULE_PATH)
-        result = getattr(bl_module, func_name)()
-        print("RESULT IS \n" + str(result))
-        return result
+        getattr(bl_module, func_name)()
 
     def run(self):
         self.serve_forever()
+

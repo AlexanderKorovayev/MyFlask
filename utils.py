@@ -11,9 +11,15 @@ def check_type(obj, base_type):
     :return: True or False
     """
     rez = False
-    if obj.__name__ == 'object':
+
+    if type(obj) == type:
+        rez_object = obj
+    else:
+        rez_object = obj.__class__
+
+    if rez_object.__name__ == 'object':
         return rez
-    for base in obj.__bases__:
+    for base in rez_object.__bases__:
         if base.__name__ == base_type.__name__:
             rez = True
             return rez

@@ -50,21 +50,15 @@ class IServer:
         :param conn: соединение с клиентом
         """
         try:
-            print("IN")
             self._parse_request(conn)
-            print("IN1")
-            self._response = self._handle_request()
-            print(self._response)
+            self._handle_request()
             self._send_response(conn)
-            print('!!!')
         except ConnectionResetError:
             conn = None
         except Exception as e:
             self._send_error(conn, e)
-            print(e)
 
         if conn:
-            print('CLOSE CONNECT')
             conn.close()
 
     def _parse_request(self, conn):
