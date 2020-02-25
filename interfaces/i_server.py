@@ -6,6 +6,7 @@ import socket
 from interfaces.i_request import IRequest
 from interfaces.i_response import IResponse
 import utils
+import threading
 
 
 class IServer:
@@ -38,7 +39,7 @@ class IServer:
             while True:
                 conn, _ = serv_sock.accept()
                 try:
-                    self._serve_client(conn)
+                    threading.Thread(target=self._serve_client, args=(conn,))
                 except Exception as e:
                     self._send_error(conn, e)
         finally:
