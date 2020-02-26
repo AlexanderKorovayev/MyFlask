@@ -22,7 +22,8 @@ class HTTPServer(IServer):
         :param conn: сокет
         :return: объект запроса
         """
-        self._rfile = conn.makefile('rb')
+
+        _rfile = conn.makefile('rb')
         method, target, ver = self._parse_request_line()
         headers = self._parse_headers()
         host = headers.get('Host')
