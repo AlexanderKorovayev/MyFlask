@@ -53,6 +53,9 @@ class IServer:
                 # тут есть ресурсы которые будут общими, надо это устранить, как минимум rfile, request, response,
                 # возможно error
 
+                # проблема производитель потребитель акктуальна для случаев, когда у потоков общий ресурс и надо
+                # обращаться к нему поочереди
+
                 threading.Thread(target=self._serve_client, args=(conn,))
         finally:
             serv_sock.close()
