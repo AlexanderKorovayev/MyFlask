@@ -3,6 +3,7 @@
 """
 
 from interfaces.i_data_worker import IDataWorker
+import time
 
 
 class Session(IDataWorker):
@@ -13,6 +14,7 @@ class Session(IDataWorker):
         self._id = 1
 
     def save_data(self, data):
+        time.sleep(1)
         self._container[self._id] = data
         self._id += 1
 

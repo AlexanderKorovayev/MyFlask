@@ -5,6 +5,8 @@
 from interfaces.i_server import IServer
 from base_errors.http_errors import HTTPError
 from email.parser import Parser
+from implementations.my_flask_thread.response import Response
+from implementations.my_flask_thread.request import Request
 
 
 class HTTPServer(IServer):
@@ -24,21 +26,24 @@ class HTTPServer(IServer):
         """
 
         _rfile = conn.makefile('rb')
-        method, target, ver = self._parse_request_line()
+        method, target, ver = self._parse_request_line(_rfile)
         headers = self._parse_headers()
         host = headers.get('Host')
         if not host:
             raise Exception('Bad request')
         if host not in (self.server_name, f'{self.server_name}:{self.port}'):
             raise HTTPError(404, 'Not found')
-        self._request.set_data(method, target, ver, headers, self._rfile)
+        _request = Request()
+        _request.set_data(method, target, ver, headers, _rfile)
+        return _request
 
-    def _parse_request_line(self):
+    def _parse_request_line(self, conn):
         """
         разбор реквест лайна
+        :conn: подключение к сокету
         :return: метод запроса, путь запроса, версия протокола
         """
-        raw = self._rfile.readline(HTTPServer._MAX_LINE + 1)
+        raw = conn.readline(HTTPServer._MAX_LINE + 1)
 
         if len(raw) > HTTPServer._MAX_LINE:
             raise Exception('Request line is too long')
@@ -58,14 +63,15 @@ class HTTPServer(IServer):
 
         return method, target, ver
 
-    def _parse_headers(self):
+    def _parse_headers(self, conn):
         """
         разбор заголовков
+        :conn: подключение к сокету
         :return: объект, содержащий заголовки
         """
         headers = []
         while True:
-            line = self._rfile.readline(HTTPServer._MAX_LINE + 1)
+            line = conn.readline(HTTPServer._MAX_LINE + 1)
             if len(line) > HTTPServer._MAX_LINE:
                 raise Exception('Header line is too long')
 
@@ -80,34 +86,38 @@ class HTTPServer(IServer):
         str_headers = b''.join(headers).decode('iso-8859-1')
         return Parser().parsestr(str_headers)
 
-    def _handle_request(self):
+    def _handle_request(self, request):
         """
         обработка запроса от клиента
         метод имеет поведение по умолчанию, которое необходимо переопределить бизнес логикой
+        :request: объект запроса
         :return: данные для клиента
         """
-        self._response.set_data(200, 'OK')
+        response = Response()
+        response.set_data(200, 'OK')
+        return response
 
-    def _send_response(self, conn):
+    def _send_response(self, conn, response):
         """
         Отправка ответа клиенту
         :param conn: сокет
+        :param response: объект ответа
         """
 
         wfile = conn.makefile('wb')
-        status_line = f'HTTP/1.1 {self._response.status} {self._response.reason}\r\n'
+        status_line = f'HTTP/1.1 {response.status} {response.reason}\r\n'
 
         wfile.write(status_line.encode('iso-8859-1'))
 
-        if self._response.headers:
-            for (key, value) in self._response.headers:
+        if response.headers:
+            for (key, value) in response.headers:
                 header_line = f'{key}: {value}\r\n'
                 wfile.write(header_line.encode('iso-8859-1'))
 
         wfile.write(b'\r\n')
 
-        if self._response.body:
-            wfile.write(self._response.body)
+        if response.body:
+            wfile.write(response.body)
 
         wfile.flush()
         wfile.close()
@@ -126,5 +136,6 @@ class HTTPServer(IServer):
             status = 500
             reason = b'Internal Server Error'
             body = b'Internal Server Error'
-        self._response.set_data(status, reason, [('Content-Length', len(body))], body)
-        self._send_response(conn)
+        response = Response()
+        response.set_data(status, reason, [('Content-Length', len(body))], body)
+        self._send_response(conn, response)

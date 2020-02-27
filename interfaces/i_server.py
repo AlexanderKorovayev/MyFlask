@@ -3,8 +3,8 @@
 """
 
 import socket
-from interfaces.i_request import IRequest
-from interfaces.i_response import IResponse
+from interfaces.i_request_thread import IRequest
+from interfaces.i_response_thread import IResponse
 import utils
 import threading
 
@@ -50,11 +50,12 @@ class IServer:
                 # Но тут важно понимать один момент, если у нас много потоков то переключение между ними создаст время
                 # и задержки, нужно понимать, больше или меньше время переключения чем задержка в каждом потоке
 
-                # тут есть ресурсы которые будут общими, надо это устранить, как минимум rfile, request, response,
-                # возможно error
-
                 # проблема производитель потребитель акктуальна для случаев, когда у потоков общий ресурс и надо
                 # обращаться к нему поочереди
+
+                # подумать как обращаться к общему объекту сессий, для кода это общий объект
+                # дома написать код который многопоточно пишет данные в сессию
+                # подумать как запуускать многопоточный код, через маин или нет, нужны ли джоины
 
                 threading.Thread(target=self._serve_client, args=(conn,))
         finally:
@@ -66,9 +67,9 @@ class IServer:
         :param conn: соединение с клиентом
         """
         try:
-            self._parse_request(conn)
-            self._handle_request()
-            self._send_response(conn)
+            request = self._parse_request(conn)
+            response = self._handle_request(request)
+            self._send_response(conn, response)
         except ConnectionResetError:
             conn = None
         except Exception as e:
