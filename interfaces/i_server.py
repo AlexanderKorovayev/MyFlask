@@ -7,6 +7,7 @@ from interfaces.i_request_thread import IRequest
 from interfaces.i_response_thread import IResponse
 import utils
 import threading
+from datetime import datetime
 
 
 class IServer:
@@ -27,7 +28,6 @@ class IServer:
     def serve_forever(self):
         """
         главная функция по обслуживанию клиента
-        TODO сделать обслуживание асинхронным или многопроцессорным
         """
         serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -36,6 +36,7 @@ class IServer:
             serv_sock.listen()
 
             while True:
+                print(f'IN MAIN {datetime.now().time()}\n')
                 conn, _ = serv_sock.accept()
 
                 # МНОГОПРОЦЕССОРНОСТЬ
@@ -57,19 +58,25 @@ class IServer:
                 # дома написать код который многопоточно пишет данные в сессию
                 # подумать как запуускать многопоточный код, через маин или нет, нужны ли джоины
 
-                threading.Thread(target=self._serve_client, args=(conn,))
+                print(f'connected {_[1]}')
+                threading.Thread(target=self._serve_client, args=(conn, _[1])).start()
+                
         finally:
             serv_sock.close()
 
-    def _serve_client(self, conn):
+    def _serve_client(self, conn, pid):
         """
         обслуживание запроса(обработка запроса, выполнение запроса, ответ клиенту)
         :param conn: соединение с клиентом
         """
         try:
+            print(f'thread {pid} started {datetime.now().time()}\n')
             request = self._parse_request(conn)
+            print('REQUEST YES')
             response = self._handle_request(request)
+            print('RESPONSE YES')
             self._send_response(conn, response)
+            print('SEND RESPONSE YES\n')
         except ConnectionResetError:
             conn = None
         except Exception as e:
@@ -77,6 +84,7 @@ class IServer:
 
         if conn:
             conn.close()
+        print(f'thread {pid} finish {datetime.now().time()}\n')
 
     def _parse_request(self, conn):
         """
@@ -86,14 +94,14 @@ class IServer:
         """
         raise NotImplementedError
 
-    def _handle_request(self):
+    def _handle_request(self, request):
         """
         обработка запроса от клиента
         :return: данные для клиента
         """
         raise NotImplementedError
 
-    def _send_response(self, conn):
+    def _send_response(self, conn, response):
         """
         Отправка ответа клиенту
         :param conn: сокет

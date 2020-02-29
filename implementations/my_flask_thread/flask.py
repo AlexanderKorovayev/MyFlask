@@ -52,6 +52,7 @@ class Flask(http_server.HTTPServer):
         path = request.path()
         method = request.method
         func_name = Flask._ROUTE_MAP.get((path, method))
+        print(f'function name is {func_name}')
         if not func_name:
             raise HTTPError(404, 'Not found')
         bl_module = importlib.import_module(Flask._HANDLE_MODULE_PATH)

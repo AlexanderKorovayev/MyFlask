@@ -2,6 +2,7 @@ from implementations.my_flask_thread import flask
 from implementations.my_flask_thread.response import Response
 import json
 from implementations.my_flask_thread.session import session
+from datetime import datetime
 
 
 # инициализация фласка
@@ -16,10 +17,14 @@ def handle_post_users(request):
     :return: объект ответа
     """
 
+    print(f'in handle function')
+
     data = {'name': request.query()['name'][0],
             'age': request.query()['age'][0]}
-
+    
+    print(f'start save data {datetime.now().time()}')
     session.save_data(data)
+    print(f'finish save data {datetime.now().time()}')
     response = Response()
     response.set_data(204, 'Created')
     return response
@@ -60,43 +65,6 @@ def handle_get_users(request):
     response.set_data(200, 'OK', headers, body)
     return response
 
-
-# как реализовать это пока хз
-'''
-if req.path.startswith('/users/'):
-            user_id = req.path[len('/users/'):]
-            if user_id.isdigit():
-                return self.handle_get_user(req, user_id)
-def handle_get_user(self, req, user_id):
-    """
-    бработка запроса на получение пользоватедя по id
-    :param req: объект запроса
-    :param user_id: id пользователя
-    :return: объект запроса
-    """
-    user = self._users.get(int(user_id))
-    if not user:
-        raise HTTPError(404, 'Not found')
-
-    accept = req.headers.get('Accept')
-    if 'text/html' in accept:
-        contentType = 'text/html; charset=utf-8'
-        body = '<html><head></head><body>'
-        body += f'#{user["id"]} {user["name"]}, {user["age"]}'
-        body += '</body></html>'
-
-    elif 'application/json' in accept:
-        contentType = 'application/json; charset=utf-8'
-        body = json.dumps(user)
-
-    else:
-        return Response(406, 'Not Acceptable')
-
-    body = body.encode('utf-8')
-    headers = [('Content-Type', contentType),
-                ('Content-Length', len(body))]
-    return Response(200, 'OK', headers, body)
-'''
 
 if __name__ == '__main__':
     app.run()

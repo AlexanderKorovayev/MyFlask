@@ -40,4 +40,5 @@ if __name__ == '__main__':
 
         print(f'in main, finish start threaded\n{datetime.now().time()}\n')
 
+    print(f'finish threaded\n{datetime.now().time()}\n')
     print(db.load_data())

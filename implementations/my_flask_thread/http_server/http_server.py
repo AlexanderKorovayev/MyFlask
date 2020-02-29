@@ -7,6 +7,7 @@ from base_errors.http_errors import HTTPError
 from email.parser import Parser
 from implementations.my_flask_thread.response import Response
 from implementations.my_flask_thread.request import Request
+from datetime import datetime
 
 
 class HTTPServer(IServer):
@@ -25,10 +26,15 @@ class HTTPServer(IServer):
         :return: объект запроса
         """
 
+        print(f'in thread {datetime.now().time()}')
         _rfile = conn.makefile('rb')
         method, target, ver = self._parse_request_line(_rfile)
-        headers = self._parse_headers()
+        print(f'Method is {method}')
+        print(f'Target is {target}')
+        print(f'Version is {ver}')
+        headers = self._parse_headers(_rfile)
         host = headers.get('Host')
+        print(f'host is {host}')
         if not host:
             raise Exception('Bad request')
         if host not in (self.server_name, f'{self.server_name}:{self.port}'):
