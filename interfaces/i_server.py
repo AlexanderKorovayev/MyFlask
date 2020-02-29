@@ -36,47 +36,21 @@ class IServer:
             serv_sock.listen()
 
             while True:
-                print(f'IN MAIN {datetime.now().time()}\n')
                 conn, _ = serv_sock.accept()
-
-                # МНОГОПРОЦЕССОРНОСТЬ
-                # фласк должен посчитать скалько ядер можно использовать, и параллелить запросы на их колличесвто
-                # остальное помещать в очередь и вытаскивать когда одно из ядер освободится
-
-                # МНОГОПОТОЧНОСТЬ
-                # по сути многопоточнгость выполняется в одном главном потоке, поэтому нет особого смысла обрабатывать
-                # параллельно несколько запросов от клиента в одном ядре
-                # фласк будет иметь метод с транспортной задержкой, во время её работы он сможет обработать
-                # остальные запросы из очереди
-                # Но тут важно понимать один момент, если у нас много потоков то переключение между ними создаст время
-                # и задержки, нужно понимать, больше или меньше время переключения чем задержка в каждом потоке
-
-                # проблема производитель потребитель акктуальна для случаев, когда у потоков общий ресурс и надо
-                # обращаться к нему поочереди
-
-                # подумать как обращаться к общему объекту сессий, для кода это общий объект
-                # дома написать код который многопоточно пишет данные в сессию
-                # подумать как запуускать многопоточный код, через маин или нет, нужны ли джоины
-
-                print(f'connected {_[1]}')
-                threading.Thread(target=self._serve_client, args=(conn, _[1])).start()
+                self._serve_client(conn)
                 
         finally:
             serv_sock.close()
 
-    def _serve_client(self, conn, pid):
+    def _serve_client(self, conn):
         """
         обслуживание запроса(обработка запроса, выполнение запроса, ответ клиенту)
         :param conn: соединение с клиентом
         """
         try:
-            print(f'thread {pid} started {datetime.now().time()}\n')
             request = self._parse_request(conn)
-            print('REQUEST YES')
-            response = self._handle_request(request)
-            print('RESPONSE YES')
-            self._send_response(conn, response)
-            print('SEND RESPONSE YES\n')
+            response = self._handle_request()
+            self._send_response(conn)
         except ConnectionResetError:
             conn = None
         except Exception as e:
@@ -84,7 +58,6 @@ class IServer:
 
         if conn:
             conn.close()
-        print(f'thread {pid} finish {datetime.now().time()}\n')
 
     def _parse_request(self, conn):
         """
@@ -94,14 +67,14 @@ class IServer:
         """
         raise NotImplementedError
 
-    def _handle_request(self, request):
+    def _handle_request(self):
         """
         обработка запроса от клиента
         :return: данные для клиента
         """
         raise NotImplementedError
 
-    def _send_response(self, conn, response):
+    def _send_response(self, conn):
         """
         Отправка ответа клиенту
         :param conn: сокет

@@ -2,7 +2,7 @@
 модуль, реализующий http сервер
 """
 
-from interfaces.i_server import IServer
+from interfaces.threaded.i_server import IServer
 from base_errors.http_errors import HTTPError
 from email.parser import Parser
 from implementations.my_flask_thread.response import Response

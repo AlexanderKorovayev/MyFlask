@@ -28,6 +28,8 @@ class Flask(http_server.HTTPServer):
         if self.os_name == 'Linux':
             Flask._HANDLE_MODULE_PATH = inspect.stack()[-1].filename.split("/")[-1].split('.py')[0]
 
+        print(f'init module path is {Flask._HANDLE_MODULE_PATH}')
+
         # проверяем что основные объекты подходят для работы с фласком
         if not(utils.check_type(session, IDataWorker)):
             raise Exception('Session не соответствует заданным стандартам IDataWorker')
@@ -55,6 +57,7 @@ class Flask(http_server.HTTPServer):
         print(f'function name is {func_name}')
         if not func_name:
             raise HTTPError(404, 'Not found')
+        print(f'handle module path is {Flask._HANDLE_MODULE_PATH}')
         bl_module = importlib.import_module(Flask._HANDLE_MODULE_PATH)
         return getattr(bl_module, func_name)(request)
 

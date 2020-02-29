@@ -1,4 +1,4 @@
-from interfaces.i_request_thread import IRequest
+from interfaces.threaded.i_request_thread import IRequest
 from urllib.parse import parse_qs, urlparse
 
 
