@@ -3,9 +3,10 @@
 """
 
 import socket
-from interfaces.i_request import IRequest
-from interfaces.i_response import IResponse
+from interfaces.i_request_thread import IRequest
+from interfaces.i_response_thread import IResponse
 import utils
+import threading
 
 
 class IServer:
@@ -15,7 +16,6 @@ class IServer:
     def __init__(self, host_name, port_id, server_name, request, response):
         self.port = port_id
         self.server_name = server_name
-        self._rfile = None
         self._host = host_name
         if not (utils.check_type(request, IRequest)):
             raise Exception('объект реквеста не соответствует заданным стандартам IRequest')
@@ -37,10 +37,27 @@ class IServer:
 
             while True:
                 conn, _ = serv_sock.accept()
-                try:
-                    self._serve_client(conn)
-                except Exception as e:
-                    self._send_error(conn, e)
+
+                # МНОГОПРОЦЕССОРНОСТЬ
+                # фласк должен посчитать скалько ядер можно использовать, и параллелить запросы на их колличесвто
+                # остальное помещать в очередь и вытаскивать когда одно из ядер освободится
+
+                # МНОГОПОТОЧНОСТЬ
+                # по сути многопоточнгость выполняется в одном главном потоке, поэтому нет особого смысла обрабатывать
+                # параллельно несколько запросов от клиента в одном ядре
+                # фласк будет иметь метод с транспортной задержкой, во время её работы он сможет обработать
+                # остальные запросы из очереди
+                # Но тут важно понимать один момент, если у нас много потоков то переключение между ними создаст время
+                # и задержки, нужно понимать, больше или меньше время переключения чем задержка в каждом потоке
+
+                # проблема производитель потребитель акктуальна для случаев, когда у потоков общий ресурс и надо
+                # обращаться к нему поочереди
+
+                # подумать как обращаться к общему объекту сессий, для кода это общий объект
+                # дома написать код который многопоточно пишет данные в сессию
+                # подумать как запуускать многопоточный код, через маин или нет, нужны ли джоины
+
+                threading.Thread(target=self._serve_client, args=(conn,))
         finally:
             serv_sock.close()
 
@@ -50,9 +67,9 @@ class IServer:
         :param conn: соединение с клиентом
         """
         try:
-            self._parse_request(conn)
-            self._handle_request()
-            self._send_response(conn)
+            request = self._parse_request(conn)
+            response = self._handle_request(request)
+            self._send_response(conn, response)
         except ConnectionResetError:
             conn = None
         except Exception as e:
