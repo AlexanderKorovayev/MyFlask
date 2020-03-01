@@ -8,6 +8,7 @@ from email.parser import Parser
 from implementations.my_flask_thread.response import Response
 from implementations.my_flask_thread.request import Request
 from datetime import datetime
+import threading
 
 
 class HTTPServer(IServer):
@@ -25,8 +26,8 @@ class HTTPServer(IServer):
         :param conn: сокет
         :return: объект запроса
         """
-
-        print(f'in thread {datetime.now().time()}')
+        
+        print(f'in thread {threading.current_thread().name} {datetime.now().time()}')
         _rfile = conn.makefile('rb')
         method, target, ver = self._parse_request_line(_rfile)
         print(f'Method is {method}')

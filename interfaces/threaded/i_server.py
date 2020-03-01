@@ -59,19 +59,21 @@ class IServer:
                 # подумать как запуускать многопоточный код, через маин или нет, нужны ли джоины
 
                 print(f'connected {_[1]}')
-                threading.Thread(target=self._serve_client, args=(conn, _[1])).start()
+                print(f'active threading {threading.enumerate()}')
+                print(f'active threading {threading.active_count()}')
+                threading.Thread(target=self._serve_client, args=(conn,)).start()
                 # self._serve_client(conn, _[1])
                 
         finally:
             serv_sock.close()
 
-    def _serve_client(self, conn, pid):
+    def _serve_client(self, conn):
         """
         обслуживание запроса(обработка запроса, выполнение запроса, ответ клиенту)
         :param conn: соединение с клиентом
         """
         try:
-            print(f'thread {pid} started {datetime.now().time()}\n')
+            print(f'thread {threading.current_thread().name} started {datetime.now().time()}\n')
             request = self._parse_request(conn)
             print('REQUEST YES')
             response = self._handle_request(request)
@@ -86,7 +88,7 @@ class IServer:
 
         if conn:
             conn.close()
-        print(f'thread {pid} finish {datetime.now().time()}\n')
+        print(f'thread {threading.current_thread().name} finish {datetime.now().time()}\n')
 
     def _parse_request(self, conn):
         """

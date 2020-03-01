@@ -13,20 +13,26 @@ import inspect
 import importlib
 import platform
 import utils
+import threading
 
 
 class Flask(http_server.HTTPServer):
     _ROUTE_MAP = {}
     _HANDLE_MODULE_PATH = None
 
+
     def __init__(self, port, host_name='localhost', server_name='localhost'):
         super().__init__(host_name, port, server_name, Request, Response)
         self.os_name = platform.system()
 
-        if self.os_name == 'Windows':
-            Flask._HANDLE_MODULE_PATH = inspect.stack()[-1].filename.split("\\")[-1].split('.py')[0]
-        if self.os_name == 'Linux':
-            Flask._HANDLE_MODULE_PATH = inspect.stack()[-1].filename.split("/")[-1].split('.py')[0]
+        print(f'current thread is {threading.current_thread().name}')
+        print(f'main thread is {threading.main_thread().name}')
+        print(threading.current_thread() == threading.main_thread())
+        if threading.current_thread() == threading.main_thread():
+            if self.os_name == 'Windows':
+                Flask._HANDLE_MODULE_PATH = inspect.stack()[-1].filename.split("\\")[-1].split('.py')[0]
+            if self.os_name == 'Linux':
+                Flask._HANDLE_MODULE_PATH = inspect.stack()[-1].filename.split("/")[-1].split('.py')[0]
 
         print(f'init module path is {Flask._HANDLE_MODULE_PATH}')
 
