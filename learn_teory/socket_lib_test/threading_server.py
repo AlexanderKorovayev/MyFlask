@@ -1,6 +1,7 @@
-import time
+from datetime import datetime
 import threading
 from socket import *
+import time
 
 
 myHost = ''
@@ -13,11 +14,12 @@ sockobj.listen(5)
 
 
 def now():
-    return time.ctime(time.time())
-
+    return datetime.now().time()
 
 def handle_client(connection):
-    time.sleep(5)
+    print(f'in handle, thread {threading.current_thread().name} start at {now()}\n')
+    time.sleep(10)
+    print(f'in handle, thread {threading.current_thread().name} at {now()}\n')
     while True:
         data = connection.recv(1024)
         if not data:
@@ -25,10 +27,12 @@ def handle_client(connection):
         reply = 'Echo=>{} at {}'.format(data, now())
         connection.send(reply.encode())
     connection.close()
+    print(f'in handle, thread {threading.current_thread().name} finish at {now()}\n')
 
 
 def dispatcher():
     while True:
+        print(f'in main, thread name is {threading.current_thread().name} at {now()}\n')
         connection, address = sockobj.accept()
         print('Server connected by', address, end=' ')
         print('at', now())
