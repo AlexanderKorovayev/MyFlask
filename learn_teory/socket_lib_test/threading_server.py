@@ -12,12 +12,14 @@ sockobj.bind((myHost, myPort))
 
 sockobj.listen(5)
 
+lock = threading.Lock()
+
 
 def now():
     return datetime.now().time()
 
 
-def handle_client(connection, lock):
+def handle_client(connection):
     print(f'in handle, thread {threading.current_thread().name} start at {now()}\n')
     print(f'in handle, thread {threading.current_thread().name} about lock at {now()}\n')
     with lock:
@@ -35,12 +37,11 @@ def handle_client(connection, lock):
 
 
 def dispatcher():
-    lock = threading.Lock()
     while True:
         print(f'in main, thread name is {threading.current_thread().name} at {now()}\n')
         connection, address = sockobj.accept()
         print(f'Server connected by {address} at {now()}')
-        threading.Thread(target=handle_client, args=(connection, lock)).start()
+        threading.Thread(target=handle_client, args=(connection,)).start()
 
 
 dispatcher()

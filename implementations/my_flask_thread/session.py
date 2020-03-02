@@ -4,16 +4,21 @@
 
 from interfaces.i_data_worker import IDataWorker
 import time
-from threading import Lock
+import threading
 
 
 class Session(IDataWorker):
+
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(IDataWorker, cls).__new__(cls)
+        return cls.instance
 
     def __init__(self):
         super().__init__()
         self._container = {}
         self._id = 1
-        self._lock = Lock()
+        self._lock = threading.Lock()
 
     def save_data(self, data):
         with self._lock:

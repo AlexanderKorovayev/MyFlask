@@ -6,8 +6,6 @@ import socket
 from interfaces.i_request_thread import IRequest
 from interfaces.i_response_thread import IResponse
 import utils
-import threading
-from datetime import datetime
 
 
 class IServer:

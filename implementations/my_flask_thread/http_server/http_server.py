@@ -26,16 +26,11 @@ class HTTPServer(IServer):
         :param conn: сокет
         :return: объект запроса
         """
-        
-        print(f'in thread {threading.current_thread().name} {datetime.now().time()}')
+
         _rfile = conn.makefile('rb')
         method, target, ver = self._parse_request_line(_rfile)
-        print(f'Method is {method}')
-        print(f'Target is {target}')
-        print(f'Version is {ver}')
         headers = self._parse_headers(_rfile)
         host = headers.get('Host')
-        print(f'host is {host}')
         if not host:
             raise Exception('Bad request')
         if host not in (self.server_name, f'{self.server_name}:{self.port}'):

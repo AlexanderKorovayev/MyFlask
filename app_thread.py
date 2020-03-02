@@ -17,14 +17,10 @@ def handle_post_users(request):
     :return: объект ответа
     """
 
-    print(f'in handle function')
-
     data = {'name': request.query()['name'][0],
             'age': request.query()['age'][0]}
-    
-    print(f'start save data {datetime.now().time()}')
+
     session.save_data(data)
-    print(f'finish save data {datetime.now().time()}')
     response = Response()
     response.set_data(204, 'Created')
     return response
@@ -67,4 +63,4 @@ def handle_get_users(request):
 
 
 if __name__ == '__main__':
-     app.run()
+    app.run()

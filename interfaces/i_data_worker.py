@@ -5,11 +5,6 @@
 
 class IDataWorker:
 
-    def __new__(cls):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(IDataWorker, cls).__new__(cls)
-        return cls.instance
-
     def __init__(self):
         self._container = None
         self._id = None
