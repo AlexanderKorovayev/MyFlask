@@ -2,17 +2,11 @@ import multiprocessing
 
 
 def print_records(records):
-    """
-    function to print record(tuples) in records(list)
-    """
     for record in records:
         print("Name: {0}\nScore: {1}\n".format(record[0], record[1]))
 
 
 def insert_record(record, records):
-    """
-    function to add a new record to records(list)
-    """
     records.append(record)
     print("New record added!\n")
 
@@ -20,7 +14,9 @@ def insert_record(record, records):
 if __name__ == '__main__':
     with multiprocessing.Manager() as manager:
         # creating a list in server process memory
+        
         records = manager.list([('Sam', 10), ('Adam', 9), ('Kevin', 9)])
+        
         # new record to be inserted in records
         new_record = ('Jeff', 8)
 
