@@ -23,6 +23,7 @@ if __name__ == "__main__":
   
     # creating new process 
     p1 = multiprocessing.Process(target=square_list, args=(mylist,))
+    # !!! для потока объект result будет общим !!!
     # p1 = threading.Thread(target=square_list, args=(mylist,))
     # starting process 
     p1.start() 

@@ -6,7 +6,7 @@ def square_list(mylist, result, square_sum):
     """
     function to square a given list
     """
-    # append squares of mylist to result array
+
     for idx, num in enumerate(mylist):
         result[idx] = num * num
 
