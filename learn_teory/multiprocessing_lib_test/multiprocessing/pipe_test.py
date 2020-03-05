@@ -1,26 +1,24 @@
 import multiprocessing
+import time
+from datetime import datetime
 
 
 def sender(conn, msgs):
-    """
-    function to send messages to other end of pipe
-    """
     for msg in msgs:
         conn.send(msg)
-        print("Sent the message: {}".format(msg))
+        #print("Sent the message: {}".format(msg))
+        #time.sleep(0.1)
+        print(f'send {msg} {datetime.now().time()}')
     conn.close()
 
 
 def receiver(conn):
-    """
-    function to print the messages received from other
-    end of pipe
-    """
     while True:
         msg = conn.recv()
+        print(f'rec {msg} {datetime.now().time()}')
         if msg == "END":
             break
-        print("Received the message: {}".format(msg))
+        #print("Received the message: {}".format(msg))
 
 
 if __name__ == "__main__":

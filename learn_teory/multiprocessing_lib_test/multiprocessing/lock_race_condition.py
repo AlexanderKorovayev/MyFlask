@@ -1,46 +1,39 @@
 import multiprocessing
+from datetime import datetime
 
 
-def withdraw(balance, lock):
-    for _ in range(10000):
-        with lock:
+def plus(balance_val, lock_obj):
+    print(f'in {multiprocessing.current_process().name} balance {balance_val.value} start at {datetime.now().time()}\n')
+    for _ in range(50):
+        with lock_obj:
             # lock.acquire()
-            balance.value = balance.value - 1
-            # lock.release()
-
-
-def deposit(balance, lock):
-    for _ in range(10000):
-        with lock:
-            # lock.acquire()
+            print(f'{multiprocessing.current_process().name} hold balance {balance_val.value} at {datetime.now().time()}\n')
             balance.value = balance.value + 1
             # lock.release()
 
 
-def perform_transactions():
-    # initial balance (in shared memory)
-    balance = multiprocessing.Value('i', 100)
-
-    # creating a lock object
-    lock = multiprocessing.Lock()
-
-    # creating new processes
-    p1 = multiprocessing.Process(target=withdraw, args=(balance, lock))
-    p2 = multiprocessing.Process(target=deposit, args=(balance, lock))
-
-    # starting processes
-    p1.start()
-    p2.start()
-
-    # wait until processes are finished
-    p1.join()
-    p2.join()
-
-    # print final balance
-    print("Final balance = {}".format(balance.value))
+def minus(balance_val, lock_obj):
+    print(f'in {multiprocessing.current_process().name} balance {balance_val.value} start at {datetime.now().time()}\n')
+    for _ in range(50):
+        with lock_obj:
+            # lock.acquire()
+            print(f'{multiprocessing.current_process().name} hold balance {balance_val.value} at {datetime.now().time()}\n')
+            balance.value = balance.value - 1
+            # lock.release()
 
 
 if __name__ == "__main__":
-    for _ in range(10):
-        # perform same transaction process 10 times
-        perform_transactions()
+    balance = multiprocessing.Value('i', 100)
+
+    lock = multiprocessing.Lock()
+
+    p1 = multiprocessing.Process(target=plus, args=(balance, lock))
+    p2 = multiprocessing.Process(target=minus, args=(balance, lock))
+
+    p1.start()
+    p2.start()
+
+    p1.join()
+    p2.join()
+
+    print("Final balance = {}".format(balance.value))
