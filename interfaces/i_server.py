@@ -3,9 +3,10 @@
 """
 
 import socket
-from interfaces.i_request_thread import IRequest
-from interfaces.i_response_thread import IResponse
+from interfaces.i_request import IRequest
+from interfaces.i_response import IResponse
 import utils
+from datetime import datetime
 
 
 class IServer:
@@ -35,7 +36,9 @@ class IServer:
 
             while True:
                 conn, _ = serv_sock.accept()
+                print(f'con {_} start at {datetime.now().time()}')
                 self._serve_client(conn)
+                print(f'con {_} finish {datetime.now().time()}')
                 
         finally:
             serv_sock.close()
@@ -46,8 +49,8 @@ class IServer:
         :param conn: соединение с клиентом
         """
         try:
-            request = self._parse_request(conn)
-            response = self._handle_request()
+            self._parse_request(conn)
+            self._handle_request()
             self._send_response(conn)
         except ConnectionResetError:
             conn = None

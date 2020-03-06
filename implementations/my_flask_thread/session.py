@@ -22,7 +22,6 @@ class Session(IDataWorker):
 
     def save_data(self, data):
         with self._lock:
-            time.sleep(3)
             self._container[self._id] = data
             self._id += 1
 

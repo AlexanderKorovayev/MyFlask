@@ -16,7 +16,6 @@ import utils
 
 
 class Flask(http_server.HTTPServer):
-    # TODO пока храним в поле класса, но надо будет это поменять потому что каждый экземпляр будет переписывать данные, например хранить в базе
     _ROUTE_MAP = {}
     _HANDLE_MODULE_PATH = None
 

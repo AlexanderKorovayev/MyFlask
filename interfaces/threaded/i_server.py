@@ -38,7 +38,6 @@ class IServer:
             while True:
                 conn, _ = serv_sock.accept()
                 threading.Thread(target=self._serve_client, args=(conn,)).start()
-                # self._serve_client(conn, _[1])
                 
         finally:
             serv_sock.close()
@@ -48,6 +47,7 @@ class IServer:
         обслуживание запроса(обработка запроса, выполнение запроса, ответ клиенту)
         :param conn: соединение с клиентом
         """
+        print(f'start at {datetime.now().time()}')
         try:
             request = self._parse_request(conn)
             response = self._handle_request(request)
@@ -59,6 +59,7 @@ class IServer:
 
         if conn:
             conn.close()
+        print(f'finish at {datetime.now().time()}')
 
     def _parse_request(self, conn):
         """
