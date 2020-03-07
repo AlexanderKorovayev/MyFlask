@@ -5,6 +5,7 @@
 import multiprocessing
 from queue import Queue
 import time
+from datetime import datetime
 
 
 def check_type(obj, base_type):
@@ -35,15 +36,18 @@ def check_type(obj, base_type):
 
 
 def task(sec):
-    print('start task')
+    print(f'{multiprocessing.current_process().name} task start at {datetime.now().time()}\n')
     time.sleep(sec)
-    print('finish task')
+    print(f'{multiprocessing.current_process().name} task finish at {datetime.now().time()}\n')
 
 
 def task_listener(queue: multiprocessing.Queue):
+    print(f'{multiprocessing.current_process().name} start at {datetime.now().time()}')
     while True:
-        task = queue.get()
-        task()
+        if not queue.empty():
+            task, i = queue.get()
+            print(f'{multiprocessing.current_process().name} task is {task} i is {i} at {datetime.now().time()}\n')
+            task(i)
 
 
 def create_process():
@@ -52,25 +56,22 @@ def create_process():
     :return:
     """
 
-    # создаю общую для потоков очередь, каждый поток создаётся и начинает работать бесконечно пока к нему не придёт
-    # новая задача
-    # задачи будут находиться в очереди из которой будут доставаться задачи
-
-    # создадим очередь из максимум 100 задач
+    print(f'{multiprocessing.current_process().name} start at {datetime.now().time()}')
+    # создадим очередь размером 100 задач
     queue = multiprocessing.Queue(100)
     processes = []
     for i in range(multiprocessing.cpu_count()):
-        # передаём сюда прогу которая будет бесконечно ждать задачу,
-        # эту задачу процесс будет забирать из очереди.
         p = multiprocessing.Process(target=task_listener, args=(queue,))
         p.start()
-        p.join()
         processes.append(p)
 
     # главный поток получает задачу и помещает её в очередь
     # заполним сами очередь из заданий
-    for i in range(8):
-        queue.put(task(i))
+    for i in range(12):
+        queue.put((task, i))
+
+    for p in processes:
+        p.join()
 
     # в очереди будет содержаться таск и пид процесса который должен его обработать, все процессы вытаскивают пид и сверяют со своим
 

@@ -1,5 +1,6 @@
 import multiprocessing
 from datetime import datetime
+import time
 
 
 def square_list(mylist, q):
@@ -10,6 +11,7 @@ def square_list(mylist, q):
     for num in mylist:
         q.put(num * num)
         print(f'put {num * num} {datetime.now().time()}\n')
+        time.sleep(0.001)
 
 
 def print_queue(q):
@@ -17,9 +19,10 @@ def print_queue(q):
     function to print queue elements
     """
     print(f'in {multiprocessing.current_process().name} at {datetime.now().time()}\n')
-    while not q.empty():
-        #print(q.get())
-        print(f'get {q.get()} {datetime.now().time()}\n')
+    while True:
+        if not q.empty():
+            #print(q.get())
+            print(f'get {q.get()} {datetime.now().time()}\n')
 
 
 if __name__ == "__main__":
