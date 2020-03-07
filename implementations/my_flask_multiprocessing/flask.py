@@ -3,11 +3,11 @@
 """
 
 
-from implementations.my_flask_thread.http_server import http_server
+from implementations.my_flask_multiprocessing.http_server import http_server
 from base_errors.http_errors import HTTPError
-from implementations.my_flask_thread.request import Request
-from implementations.my_flask_thread.response import Response
-from implementations.my_flask_thread.session import session
+from implementations.my_flask_multiprocessing.request import Request
+from implementations.my_flask_multiprocessing.response import Response
+from implementations.my_flask_multiprocessing.session import session
 from interfaces.i_data_worker import IDataWorker
 import inspect
 import importlib

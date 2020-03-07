@@ -3,7 +3,6 @@
 """
 
 import multiprocessing
-from queue import Queue
 import time
 from datetime import datetime
 
@@ -78,5 +77,3 @@ def create_process():
     # очередь потоко безопасна пока один процесс считывает из неё, остальные не могут обратиться к очереди(ПРОВЕРИТЬ!)
     # процесс взял из очереди задачу и начал выполнять её , соответственно он не возьмёти ещё задачу пока не выполнит взятую
 
-
-create_process()

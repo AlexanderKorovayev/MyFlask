@@ -2,13 +2,12 @@
 модуль, реализующий http сервер
 """
 
-from interfaces.threaded.i_server import IServer
+from interfaces.multiprocessing.i_server import IServer
 from base_errors.http_errors import HTTPError
 from email.parser import Parser
-from implementations.my_flask_thread.response import Response
-from implementations.my_flask_thread.request import Request
+from implementations.my_flask_multiprocessing.response import Response
+from implementations.my_flask_multiprocessing.request import Request
 from datetime import datetime
-import threading
 
 
 class HTTPServer(IServer):

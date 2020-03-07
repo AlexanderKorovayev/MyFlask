@@ -36,9 +36,7 @@ class IServer:
 
             while True:
                 conn, _ = serv_sock.accept()
-                print(f'con {_} start at {datetime.now().time()}')
                 self._serve_client(conn)
-                print(f'con {_} finish {datetime.now().time()}')
                 
         finally:
             serv_sock.close()

@@ -6,7 +6,7 @@ import socket
 from interfaces.threaded.i_request_thread import IRequest
 from interfaces.threaded.i_response_thread import IResponse
 import utils
-import threading
+import multiprocessing
 from datetime import datetime
 
 
@@ -24,11 +24,29 @@ class IServer:
             raise Exception('объект респонса не соответствует заданным стандартам IResponse')
         self._request = request
         self._response = response
+        # создадим очередь под максимальную нагрузку в 100 запросов
+        self._queue = multiprocessing.Queue(100)
+        for i in range(multiprocessing.cpu_count()-1):
+            p = multiprocessing.Process(target=IServer._task_listener, args=(self._queue,))
+            p.start()
+
+    @staticmethod
+    def _task_listener(queue: multiprocessing.Queue):
+        """
+            функция ожидающая задачи
+        """
+        print(f'{multiprocessing.current_process().name} start at {datetime.now().time()}')
+        while True:
+            if not queue.empty():
+                task, args = queue.get()
+                print(f'{multiprocessing.current_process().name} task is {task} i is {args} at {datetime.now().time()}\n')
+                task(args)
 
     def serve_forever(self):
         """
         главная функция по обслуживанию клиента
         """
+        print(f'{multiprocessing.current_process().name} in serve forever at {datetime.now().time()}')
         serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
@@ -37,7 +55,9 @@ class IServer:
 
             while True:
                 conn, _ = serv_sock.accept()
-                threading.Thread(target=self._serve_client, args=(conn,)).start()
+                print(f'{multiprocessing.current_process().name} connect {_} at {datetime.now().time()}')
+                # очередб не принимает в себя почему-то self._serve_client
+                self._queue.put((self._serve_client, conn))
                 
         finally:
             serv_sock.close()
