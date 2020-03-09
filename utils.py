@@ -42,7 +42,6 @@ def task(sec):
 
 def task_listener(queue: multiprocessing.Queue):
     print(f'{multiprocessing.current_process().name} start at {datetime.now().time()}')
-            
     while True:
         if not queue.empty():
             task, i = queue.get()
@@ -80,3 +79,38 @@ def create_process():
 
 if __name__ == '__main__':
     create_process()
+
+
+"""
+import random
+from multiprocessing import Process, Queue
+import multiprocessing
+import time
+
+
+def af(q):
+    while True:
+        q.put(random.randint(0,1000))
+        print(multiprocessing.current_process().name)
+        time.sleep(0.01)
+
+def bf(q):
+    while True:
+        if not q.empty():
+            print(multiprocessing.current_process().name, q.get())
+
+def main():
+    a = Queue()  
+    p = Process(target=af, args=(a,))
+    c = Process(target=bf, args=(a,))
+    p.start()
+    c.start()
+    p.join()
+    c.join()
+
+
+if __name__ == "__main__":
+    main()
+
+
+"""
