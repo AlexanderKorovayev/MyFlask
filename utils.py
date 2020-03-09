@@ -42,6 +42,7 @@ def task(sec):
 
 def task_listener(queue: multiprocessing.Queue):
     print(f'{multiprocessing.current_process().name} start at {datetime.now().time()}')
+            
     while True:
         if not queue.empty():
             task, i = queue.get()
@@ -77,3 +78,5 @@ def create_process():
     # очередь потоко безопасна пока один процесс считывает из неё, остальные не могут обратиться к очереди(ПРОВЕРИТЬ!)
     # процесс взял из очереди задачу и начал выполнять её , соответственно он не возьмёти ещё задачу пока не выполнит взятую
 
+if __name__ == '__main__':
+    create_process()

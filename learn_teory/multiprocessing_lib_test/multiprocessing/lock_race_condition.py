@@ -8,7 +8,7 @@ def plus(balance_val, lock_obj):
         with lock_obj:
             # lock.acquire()
             print(f'{multiprocessing.current_process().name} hold balance {balance_val.value} at {datetime.now().time()}\n')
-            balance.value = balance.value + 1
+            balance_val.value = balance_val.value + 1
             # lock.release()
 
 
@@ -18,7 +18,7 @@ def minus(balance_val, lock_obj):
         with lock_obj:
             # lock.acquire()
             print(f'{multiprocessing.current_process().name} hold balance {balance_val.value} at {datetime.now().time()}\n')
-            balance.value = balance.value - 1
+            balance_val.value = balance_val.value - 1
             # lock.release()
 
 
