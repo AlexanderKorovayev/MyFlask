@@ -43,8 +43,9 @@ class Flask(http_server.HTTPServer):
                 return rez
             return inner_inner_route
         return inner_route
-    
-    def _handle_request(self, request):
+
+    @staticmethod
+    def _handle_request(request):
         """
         обработка запроса от клиента
         :request: объект запроса

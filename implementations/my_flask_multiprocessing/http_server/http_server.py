@@ -8,6 +8,8 @@ from email.parser import Parser
 from implementations.my_flask_multiprocessing.response import Response
 from implementations.my_flask_multiprocessing.request import Request
 from datetime import datetime
+import multiprocessing
+import socket
 
 
 class HTTPServer(IServer):
@@ -19,7 +21,50 @@ class HTTPServer(IServer):
     def __init__(self, host_name, port_id, server_name, request, response):
         super().__init__(host_name, port_id, server_name, request, response)
 
-    def _parse_request(self, conn):
+    def serve_forever(self):
+        """
+        главная функция по обслуживанию клиента
+        """
+        print(f'{multiprocessing.current_process().name} in serve forever at {datetime.now().time()}')
+        serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        try:
+            serv_sock.bind((self._host, self.port))
+            serv_sock.listen()
+
+            while True:
+                conn, _ = serv_sock.accept()
+                print(f'{multiprocessing.current_process().name} connect {_} at {datetime.now().time()}')
+                # очередб не принимает в себя почему-то self._serve_client
+                self._queue.put((HTTPServer._serve_client, conn))
+
+        finally:
+            serv_sock.close()
+
+    @staticmethod
+    def _serve_client(conn):
+        """
+        обслуживание запроса(обработка запроса, выполнение запроса, ответ клиенту)
+        :param conn: соединение с клиентом
+        """
+        print(f'start at {datetime.now().time()}')
+
+        try:
+            request = HTTPServer._parse_request(conn)
+            response = HTTPServer._handle_request(request)
+            HTTPServer._send_response(conn, response)
+        except ConnectionResetError:
+            conn = None
+        except Exception as e:
+            HTTPServer._send_error(conn, e)
+
+        if conn:
+            conn.close()
+
+        print(f'finish at {datetime.now().time()}')
+
+    @staticmethod
+    def _parse_request(conn):
         """
         разбор запроса от клиента
         :param conn: сокет
@@ -27,18 +72,19 @@ class HTTPServer(IServer):
         """
 
         _rfile = conn.makefile('rb')
-        method, target, ver = self._parse_request_line(_rfile)
-        headers = self._parse_headers(_rfile)
+        method, target, ver = HTTPServer._parse_request_line(_rfile)
+        headers = HTTPServer._parse_headers(_rfile)
         host = headers.get('Host')
         if not host:
             raise Exception('Bad request')
-        if host not in (self.server_name, f'{self.server_name}:{self.port}'):
+        if host not in (HTTPServer.server_name, f'{HTTPServer.server_name}:{HTTPServer.port}'):
             raise HTTPError(404, 'Not found')
         _request = Request()
         _request.set_data(method, target, ver, headers, _rfile)
         return _request
 
-    def _parse_request_line(self, conn):
+    @staticmethod
+    def _parse_request_line(conn):
         """
         разбор реквест лайна
         :conn: подключение к сокету
@@ -64,7 +110,8 @@ class HTTPServer(IServer):
 
         return method, target, ver
 
-    def _parse_headers(self, conn):
+    @staticmethod
+    def _parse_headers(conn):
         """
         разбор заголовков
         :conn: подключение к сокету
@@ -87,7 +134,8 @@ class HTTPServer(IServer):
         str_headers = b''.join(headers).decode('iso-8859-1')
         return Parser().parsestr(str_headers)
 
-    def _handle_request(self, request):
+    @staticmethod
+    def _handle_request(request):
         """
         обработка запроса от клиента
         метод имеет поведение по умолчанию, которое необходимо переопределить бизнес логикой
@@ -98,7 +146,8 @@ class HTTPServer(IServer):
         response.set_data(200, 'OK')
         return response
 
-    def _send_response(self, conn, response):
+    @staticmethod
+    def _send_response(conn, response):
         """
         Отправка ответа клиенту
         :param conn: сокет
@@ -107,6 +156,8 @@ class HTTPServer(IServer):
 
         wfile = conn.makefile('wb')
         status_line = f'HTTP/1.1 {response.status} {response.reason}\r\n'
+
+        print(f'HTTP/1.1 {response.status} {response.reason}\r\n')
 
         wfile.write(status_line.encode('iso-8859-1'))
 
@@ -119,10 +170,12 @@ class HTTPServer(IServer):
 
         if response.body:
             wfile.write(response.body)
+            print(f'{response.body}')
 
         wfile.flush()
         wfile.close()
 
+    @staticmethod
     def _send_error(self, conn, err):
         """
         конструирование объекта ошибки и его отправка
@@ -139,4 +192,4 @@ class HTTPServer(IServer):
             body = b'Internal Server Error'
         response = Response()
         response.set_data(status, reason, [('Content-Length', len(body))], body)
-        self._send_response(conn, response)
+        HTTPServer._send_response(conn, response)
