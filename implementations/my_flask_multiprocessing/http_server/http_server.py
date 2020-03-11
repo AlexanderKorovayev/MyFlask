@@ -35,8 +35,7 @@ class HTTPServer(IServer):
             while True:
                 conn, _ = serv_sock.accept()
                 print(f'{multiprocessing.current_process().name} connect {_} at {datetime.now().time()}')
-                # очередб не принимает в себя почему-то self._serve_client
-                self._queue.put((HTTPServer._serve_client, conn))
+                HTTPServer._queue.put((HTTPServer._serve_client, conn))
 
         finally:
             serv_sock.close()
@@ -73,6 +72,8 @@ class HTTPServer(IServer):
 
         _rfile = conn.makefile('rb')
         method, target, ver = HTTPServer._parse_request_line(_rfile)
+        print(multiprocessing.current_process().name)
+        print(method, target, ver)
         headers = HTTPServer._parse_headers(_rfile)
         host = headers.get('Host')
         if not host:
@@ -90,24 +91,19 @@ class HTTPServer(IServer):
         :conn: подключение к сокету
         :return: метод запроса, путь запроса, версия протокола
         """
-        raw = conn.readline(HTTPServer._MAX_LINE + 1)
 
+        raw = conn.readline(HTTPServer._MAX_LINE + 1)
         if len(raw) > HTTPServer._MAX_LINE:
             raise Exception('Request line is too long')
-
         req_line = str(raw, 'iso-8859-1')
         req_line = req_line.rstrip('\r\n')
         params = req_line.split()
-
         if len(params) != 3:
             raise Exception('Incorrect request line')
-
         method, target, ver = params
-
         # реализована поддержка толкьо версии 1.1
         if ver != 'HTTP/1.1':
             raise Exception('Unexpected HTTP version')
-
         return method, target, ver
 
     @staticmethod
@@ -176,7 +172,7 @@ class HTTPServer(IServer):
         wfile.close()
 
     @staticmethod
-    def _send_error(self, conn, err):
+    def _send_error(conn, err):
         """
         конструирование объекта ошибки и его отправка
         :param conn: сокет

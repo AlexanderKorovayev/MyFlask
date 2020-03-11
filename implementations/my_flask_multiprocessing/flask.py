@@ -14,6 +14,9 @@ import importlib
 import platform
 import utils
 import threading
+import multiprocessing
+from datetime import datetime
+import socket
 
 
 class Flask(http_server.HTTPServer):
@@ -43,6 +46,50 @@ class Flask(http_server.HTTPServer):
                 return rez
             return inner_inner_route
         return inner_route
+
+    def serve_forever(self):
+        """
+        главная функция по обслуживанию клиента
+        """
+        print(f'{multiprocessing.current_process().name} in serve forever at {datetime.now().time()}')
+        serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        try:
+            serv_sock.bind((self._host, self.port))
+            serv_sock.listen()
+
+            while True:
+                conn, _ = serv_sock.accept()
+                print(f'{multiprocessing.current_process().name} connect {_} at {datetime.now().time()}')
+                if len(Flask._process) < multiprocessing.cpu_count() - 1:
+                    p = multiprocessing.Process(target=Flask._task_listener, args=(Flask._queue,))
+                    p.start()
+                Flask._queue.put((Flask._serve_client, conn))
+
+        finally:
+            serv_sock.close()
+
+    @staticmethod
+    def _serve_client(conn):
+        """
+        обслуживание запроса(обработка запроса, выполнение запроса, ответ клиенту)
+        :param conn: соединение с клиентом
+        """
+        print(f'start at {datetime.now().time()}')
+
+        try:
+            request = Flask._parse_request(conn)
+            response = Flask._handle_request(request)
+            Flask._send_response(conn, response)
+        except ConnectionResetError:
+            conn = None
+        except Exception as e:
+            Flask._send_error(conn, e)
+
+        if conn:
+            conn.close()
+
+        print(f'finish at {datetime.now().time()}')
 
     @staticmethod
     def _handle_request(request):

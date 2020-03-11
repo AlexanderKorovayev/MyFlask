@@ -20,6 +20,8 @@ class IServer:
     _host = None
     _request = None
     _response = None
+    _queue = None
+    _process = []
 
     def __init__(self, host_name, port_id, server_name, request, response):
         IServer.port = port_id
@@ -32,10 +34,8 @@ class IServer:
         IServer._request = request
         IServer._response = response
         # создадим очередь под максимальную нагрузку в 100 запросов
-        self._queue = multiprocessing.Queue(100)
-        for i in range(multiprocessing.cpu_count()-1):
-            p = multiprocessing.Process(target=IServer._task_listener, args=(self._queue,))
-            p.start()
+        IServer._queue = multiprocessing.Queue(100)
+
 
     @staticmethod
     def _task_listener(queue: multiprocessing.Queue):
@@ -63,8 +63,7 @@ class IServer:
             while True:
                 conn, _ = serv_sock.accept()
                 print(f'{multiprocessing.current_process().name} connect {_} at {datetime.now().time()}')
-                # очередб не принимает в себя почему-то self._serve_client
-                self._queue.put((IServer._serve_client, conn))
+                IServer._queue.put((IServer._serve_client, conn))
                 
         finally:
             serv_sock.close()
