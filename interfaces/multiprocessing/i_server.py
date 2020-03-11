@@ -42,18 +42,17 @@ class IServer:
         """
             функция ожидающая задачи
         """
-        print(f'{multiprocessing.current_process().name} start at {datetime.now().time()}')
+
         while True:
             if not queue.empty():
                 task, args = queue.get()
-                print(f'{multiprocessing.current_process().name} task is {task} i is {args} at {datetime.now().time()}\n')
                 task(args)
 
     def serve_forever(self):
         """
         главная функция по обслуживанию клиента
         """
-        print(f'{multiprocessing.current_process().name} in serve forever at {datetime.now().time()}')
+
         serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
@@ -62,7 +61,6 @@ class IServer:
 
             while True:
                 conn, _ = serv_sock.accept()
-                print(f'{multiprocessing.current_process().name} connect {_} at {datetime.now().time()}')
                 IServer._queue.put((IServer._serve_client, conn))
                 
         finally:
@@ -74,7 +72,6 @@ class IServer:
         обслуживание запроса(обработка запроса, выполнение запроса, ответ клиенту)
         :param conn: соединение с клиентом
         """
-        print(f'start at {datetime.now().time()}')
 
         try:
             request = IServer._parse_request(conn)
@@ -87,8 +84,6 @@ class IServer:
 
         if conn:
             conn.close()
-
-        print(f'finish at {datetime.now().time()}')
 
     @staticmethod
     def _parse_request(conn):

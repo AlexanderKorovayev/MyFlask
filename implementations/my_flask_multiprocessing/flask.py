@@ -51,7 +51,7 @@ class Flask(http_server.HTTPServer):
         """
         главная функция по обслуживанию клиента
         """
-        print(f'{multiprocessing.current_process().name} in serve forever at {datetime.now().time()}')
+
         serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
@@ -60,10 +60,10 @@ class Flask(http_server.HTTPServer):
 
             while True:
                 conn, _ = serv_sock.accept()
-                print(f'{multiprocessing.current_process().name} connect {_} at {datetime.now().time()}')
                 if len(Flask._process) < multiprocessing.cpu_count() - 1:
                     p = multiprocessing.Process(target=Flask._task_listener, args=(Flask._queue,))
                     p.start()
+                    Flask._process.append(p)
                 Flask._queue.put((Flask._serve_client, conn))
 
         finally:
@@ -75,7 +75,6 @@ class Flask(http_server.HTTPServer):
         обслуживание запроса(обработка запроса, выполнение запроса, ответ клиенту)
         :param conn: соединение с клиентом
         """
-        print(f'start at {datetime.now().time()}')
 
         try:
             request = Flask._parse_request(conn)
@@ -88,8 +87,6 @@ class Flask(http_server.HTTPServer):
 
         if conn:
             conn.close()
-
-        print(f'finish at {datetime.now().time()}')
 
     @staticmethod
     def _handle_request(request):

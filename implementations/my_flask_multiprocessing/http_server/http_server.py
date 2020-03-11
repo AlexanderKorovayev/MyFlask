@@ -25,7 +25,7 @@ class HTTPServer(IServer):
         """
         главная функция по обслуживанию клиента
         """
-        print(f'{multiprocessing.current_process().name} in serve forever at {datetime.now().time()}')
+
         serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
@@ -34,7 +34,6 @@ class HTTPServer(IServer):
 
             while True:
                 conn, _ = serv_sock.accept()
-                print(f'{multiprocessing.current_process().name} connect {_} at {datetime.now().time()}')
                 HTTPServer._queue.put((HTTPServer._serve_client, conn))
 
         finally:
@@ -46,7 +45,6 @@ class HTTPServer(IServer):
         обслуживание запроса(обработка запроса, выполнение запроса, ответ клиенту)
         :param conn: соединение с клиентом
         """
-        print(f'start at {datetime.now().time()}')
 
         try:
             request = HTTPServer._parse_request(conn)
@@ -60,8 +58,6 @@ class HTTPServer(IServer):
         if conn:
             conn.close()
 
-        print(f'finish at {datetime.now().time()}')
-
     @staticmethod
     def _parse_request(conn):
         """
@@ -72,8 +68,6 @@ class HTTPServer(IServer):
 
         _rfile = conn.makefile('rb')
         method, target, ver = HTTPServer._parse_request_line(_rfile)
-        print(multiprocessing.current_process().name)
-        print(method, target, ver)
         headers = HTTPServer._parse_headers(_rfile)
         host = headers.get('Host')
         if not host:
@@ -153,8 +147,6 @@ class HTTPServer(IServer):
         wfile = conn.makefile('wb')
         status_line = f'HTTP/1.1 {response.status} {response.reason}\r\n'
 
-        print(f'HTTP/1.1 {response.status} {response.reason}\r\n')
-
         wfile.write(status_line.encode('iso-8859-1'))
 
         if response.headers:
@@ -166,7 +158,6 @@ class HTTPServer(IServer):
 
         if response.body:
             wfile.write(response.body)
-            print(f'{response.body}')
 
         wfile.flush()
         wfile.close()
