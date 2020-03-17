@@ -9,4 +9,4 @@ coro = test()
 try:
     coro.send(None)
 except StopIteration as e:
-    print(f'answer is {e.value}') 
+    print(f'answer is {e.value}')
