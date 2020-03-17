@@ -15,6 +15,7 @@ class Echoprotocol(asyncio.Protocol):
 # принимает подключения и начинает их обрабатывать
 # вместо этого включается эвент луп который сам умеет все принимать и обрабатывать
 
+
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     server_coro = loop.create_server(Echoprotocol, 'localhost', 2000)
