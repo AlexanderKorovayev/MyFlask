@@ -8,4 +8,5 @@ async def f():
 
 loop = asyncio.get_event_loop()
 coro = f()
-print(loop.run_until_complete(coro))
+rez = loop.run_until_complete(coro)
+print(rez)

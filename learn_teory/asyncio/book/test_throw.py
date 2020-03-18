@@ -1,16 +1,16 @@
 import asyncio
 
 
+async def test():
+    return 5
+
 async def f():
-    await asyncio.sleep(1.0)
-    return 123
+    rez = await test()
+    return rez
 
-
-async def main():
-    result = await f()
-    return result
-
-
-coro = f()
-coro.send(None)
-coro.throw(Exception, 'test')
+try:
+    coro = f()
+    test = coro.send(None)
+    print('test')
+except StopIteration as e:
+    print(e.value)
