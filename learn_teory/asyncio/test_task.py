@@ -5,7 +5,7 @@ import time
 
 async def test(i):
     print(f'start test {i} at {datetime.now().time()}')
-    await asyncio.sleep(1)
+    await asyncio.sleep(0.1)
     print(f'finish test {i} at {datetime.now().time()}')
 
 
@@ -15,14 +15,21 @@ async def main():
     task1 = asyncio.create_task(test(1))
     task2 = asyncio.create_task(test(2))
 
-    print(task1.done())
-    await asyncio.sleep(1)
-    # этот сли не переключит на таски
+    # обычный sleep не переключит контекст
     # time.sleep(2)
+
+    loop = asyncio.get_event_loop()
+    print(f'loop is runing {loop.is_running()}')
+
+    print(f'check if task is done - {task1.done()}, at {datetime.now().time()}')
+
     print(f'start imitation of work at {datetime.now().time()}')
+    await asyncio.sleep(1)
     print(f'finish imitation of work at {datetime.now().time()}')
+
     await task1
     await task2
 
+    print(f'check if task is done - {task1.done()}, at {datetime.now().time()}')
 
 asyncio.run(main())
