@@ -11,16 +11,14 @@ async def say_after(delay, what):
 async def main():
     # особенность таска в том что он на этом этапе попадает в ивент луп
     # и если он не занят то таск начинает выполянться уже на этом моменте
-    task1 = asyncio.create_task(
-        say_after(1, 'hello'))
+    task1 = asyncio.create_task(say_after(1, 'hello'))
 
-    task2 = asyncio.create_task(
-        say_after(2, 'world'))
+    task2 = asyncio.create_task(say_after(2, 'world'))
 
     print(f"started at {time.strftime('%X')}")
 
-    # Wait until both tasks are completed (should take
-    # around 2 seconds.)
+    # тут важный нюанс подгодать, где ставить ожидание выполнение таска, нужно ставить примерно в том моменте
+    # где выполниться таск который запускали
     await task1
     await task2
 

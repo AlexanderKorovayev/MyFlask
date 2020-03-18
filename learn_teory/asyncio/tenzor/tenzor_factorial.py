@@ -12,11 +12,12 @@ async def factorial(name, number):
 
 
 async def main():
-    # Schedule three calls *concurrently*:
-    await asyncio.gather(
-        factorial("A", 3),
-        factorial("B", 3),
-        factorial("C", 3),
-    )
+    test = asyncio.gather(
+                          factorial("A", 3),
+                          factorial("B", 3),
+                          factorial("C", 3)
+                         )
+    print('test')
+    await test
 
 asyncio.run(main())
