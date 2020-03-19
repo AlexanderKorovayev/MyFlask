@@ -4,9 +4,11 @@ import asyncio
 async def test():
     return 5
 
+
 async def f():
     rez = await test()
     return rez
+
 
 try:
     coro = f()

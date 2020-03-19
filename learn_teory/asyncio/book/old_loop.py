@@ -6,6 +6,8 @@ async def f():
     return 111
 
 
+# он запускается только внутри корутин или тасков
+# loop = asyncio.get_running_loop()
 loop = asyncio.get_event_loop()
 coro = f()
 rez = loop.run_until_complete(coro)

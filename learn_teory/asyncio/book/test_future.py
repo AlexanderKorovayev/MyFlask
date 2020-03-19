@@ -6,15 +6,14 @@ async def main(f: asyncio.Future):
     f.set_result('I have finished.')
 
 
-loop = asyncio.get_event_loop()
-#fut = asyncio.Future()
-fut = asyncio.Task(asyncio.sleep(1_000_000))
+fut = asyncio.Future()
 
 print(fut.done())
 
-loop.create_task(main(fut))
-
-loop.run_until_complete(fut)
+# loop = asyncio.get_event_loop()
+# loop.create_task(main(fut))
+# loop.run_until_complete(fut)
+asyncio.run(main(fut))
 
 print(fut.done())
 print(fut.result())
