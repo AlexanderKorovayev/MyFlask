@@ -19,5 +19,6 @@ async def main():
                          )
     print('test')
     await test
+    print('test1')
 
 asyncio.run(main())
