@@ -8,12 +8,9 @@ async def send_event(msg):
 async def echo(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     print('new connection')
     try:
-        while True:
+        while data := await reader.readline():
             print('in')
-            data = await reader.readline()
             print(f'data is {data}')
-            if not data:
-                break
             writer.write(data.upper())
             await writer.drain()
         print('leaving connection')
