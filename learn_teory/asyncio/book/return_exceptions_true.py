@@ -7,16 +7,19 @@ async def f(delay):
 
 
 async def main():
-    loop = asyncio.get_running_loop()
+    '''
+    tasks = []
     for i in range(2):
-        loop.create_task(f(i))
+        tasks.append(asyncio.create_task(f(i)))
 
     pending = asyncio.all_tasks()
+    # print(pending)
     group = asyncio.gather(*pending, return_exceptions=True)
-    results = loop.run_until_complete(group)
-    print(f' result is {results}')
-    loop.close()
-
+    #await group
+    print(f' result is {group}')
+    '''
+    group = await asyncio.gather(f(0), f(1), return_exceptions=True)
+    print(group)
 
 if __name__ == '__main__':
     asyncio.run(main())
