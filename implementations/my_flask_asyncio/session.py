@@ -3,9 +3,15 @@
 """
 
 from interfaces.i_data_worker import IDataWorker
+import time
 
 
 class Session(IDataWorker):
+
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(IDataWorker, cls).__new__(cls)
+        return cls.instance
 
     def __init__(self):
         super().__init__()

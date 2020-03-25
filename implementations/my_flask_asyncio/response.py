@@ -1,4 +1,4 @@
-from interfaces.i_response import IResponse
+from interfaces.asynced.i_response_async import IResponse
 
 
 class Response(IResponse):
@@ -7,7 +7,4 @@ class Response(IResponse):
     """
 
     pass
-
-
-response = Response()
 

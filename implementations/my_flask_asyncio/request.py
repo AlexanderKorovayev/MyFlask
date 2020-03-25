@@ -1,4 +1,4 @@
-from interfaces.i_request import IRequest
+from interfaces.asynced.i_request_async import IRequest
 from urllib.parse import parse_qs, urlparse
 
 
@@ -22,5 +22,3 @@ class Request(IRequest):
     def query(self):
         return parse_qs(self.url().query)
 
-
-request = Request()
