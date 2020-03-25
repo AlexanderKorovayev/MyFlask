@@ -4,8 +4,10 @@ import asyncio
 async def send_event(msg):
     await asyncio.sleep(1)
 
+
 async def task():
     print('I TASK')
+
 
 async def echo(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     print('new connection')
@@ -39,4 +41,4 @@ if __name__ == '__main__':
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print('bye') 
+        print('bye')
