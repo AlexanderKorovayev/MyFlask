@@ -9,11 +9,11 @@ class IDataWorker:
         self._container = None
         self._id = None
 
-    def save_data(self, data):
+    async def save_data(self, data):
         raise NotImplementedError
 
-    def load_data(self):
+    async def load_data(self):
         raise NotImplementedError
 
-    def load_data_by_id(self, id_data):
+    async def load_data_by_id(self, id_data):
         raise NotImplementedError

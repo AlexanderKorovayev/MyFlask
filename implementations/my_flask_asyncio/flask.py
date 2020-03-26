@@ -42,7 +42,7 @@ class Flask(http_server.HTTPServer):
             return inner_inner_route
         return inner_route
     
-    def _handle_request(self, request):
+    async def _handle_request(self, request):
         """
         обработка запроса от клиента
         :request: объект запроса
@@ -55,7 +55,7 @@ class Flask(http_server.HTTPServer):
         if not func_name:
             raise HTTPError(404, 'Not found')
         bl_module = importlib.import_module(Flask._HANDLE_MODULE_PATH)
-        return getattr(bl_module, func_name)(request)
+        return await getattr(bl_module, func_name)(request)
 
     async def run(self):
         await self.serve_forever()

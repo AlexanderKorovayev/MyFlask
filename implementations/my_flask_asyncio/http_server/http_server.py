@@ -87,13 +87,14 @@ class HTTPServer(IServer):
         str_headers = b''.join(headers).decode('iso-8859-1')
         return Parser().parsestr(str_headers)
 
-    def _handle_request(self, request):
+    async def _handle_request(self, request):
         """
         обработка запроса от клиента
         метод имеет поведение по умолчанию, которое необходимо переопределить бизнес логикой
         :request: объект запроса
         :return: данные для клиента
         """
+
         response = Response()
         response.set_data(200, 'OK')
         return response

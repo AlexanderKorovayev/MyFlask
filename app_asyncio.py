@@ -11,7 +11,7 @@ app = flask.Flask(2000)
 
 # реализация БЛ
 @app.route('/users', 'POST')
-def handle_post_users(request):
+async def handle_post_users(request):
     """
     обработка запроса на создание пользователя
     :request: объект запроса, будет автоматически вставляться фласком
@@ -21,14 +21,14 @@ def handle_post_users(request):
     data = {'name': request.query()['name'][0],
             'age': request.query()['age'][0]}
 
-    session.save_data(data)
+    await session.save_data(data)
     response = Response()
     response.set_data(204, 'Created')
     return response
 
 
 @app.route('/users', 'GET')
-def handle_get_users(request):
+async def handle_get_users(request):
     """
     обработка запроса на получение всех пользователей
     :request: объект запроса, будет автоматически вставляться фласком
@@ -41,16 +41,17 @@ def handle_get_users(request):
     if 'text/html' == accept:
         content_type = 'text/html; charset=utf-8'
         body = '<html><head></head><body>'
-        body += f'<div>Пользователи ({len(session.load_data())})</div>'
+        body += f'<div>Пользователи ({len(await session.load_data())})</div>'
         body += '<ul>'
-        for k, v in session.load_data().items():
+        items = await session.load_data()
+        for k, v in items.items():
             body += f'<li>#{k} {v["name"]}, {v["age"]}</li>'
         body += '</ul>'
         body += '</body></html>'
 
     elif 'application/json' == accept:
         content_type = 'application/json; charset=utf-8'
-        body = json.dumps(session.load_data())
+        body = json.dumps(await session.load_data())
 
     else:
         response.set_data(406, 'Not Acceptable')
@@ -64,4 +65,7 @@ def handle_get_users(request):
 
 
 if __name__ == '__main__':
-    asyncio.run(app.run())
+    try:
+        asyncio.run(app.run())
+    except KeyboardInterrupt:
+        print('finish server')

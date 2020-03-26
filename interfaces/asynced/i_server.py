@@ -2,7 +2,6 @@
 Модуль описывает базовую логику http сервера
 """
 
-import socket
 from interfaces.asynced.i_request_async import IRequest
 from interfaces.asynced.i_response_async import IResponse
 import utils
@@ -38,13 +37,17 @@ class IServer:
     async def _serve_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         """
         обслуживание запроса(обработка запроса, выполнение запроса, ответ клиенту)
-        :param conn: соединение с клиентом
+        :param reader: соединение с клиентом на чтение
+        :param writer: соединение с клиентом на запись
         """
         print(f'connect at {datetime.now().time()}')
         try:
             request = await self._parse_request(reader)
-            response = self._handle_request(request)
+            response = await self._handle_request(request)
             await self._send_response(writer, response)
+
+        except asyncio.CancelledError:
+            print('excepct cancell error')
         except Exception as e:
             print(e)
             await self._send_error(writer, e)
@@ -59,7 +62,7 @@ class IServer:
         """
         raise NotImplementedError
 
-    def _handle_request(self, request):
+    async def _handle_request(self, request):
         """
         обработка запроса от клиента
         :return: данные для клиента

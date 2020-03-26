@@ -4,6 +4,7 @@
 
 from interfaces.i_data_worker import IDataWorker
 import time
+import asyncio
 
 
 class Session(IDataWorker):
@@ -18,14 +19,20 @@ class Session(IDataWorker):
         self._container = {}
         self._id = 1
 
-    def save_data(self, data):
+    async def save_data(self, data):
+        # симуляция задержки IO
+        await asyncio.sleep(1)
         self._container[self._id] = data
         self._id += 1
 
-    def load_data(self):
+    async def load_data(self):
+        # симуляция задержки IO
+        await asyncio.sleep(1)
         return self._container
 
-    def load_data_by_id(self, id_data):
+    async def load_data_by_id(self, id_data):
+        # симуляция задержки IO
+        await asyncio.sleep(1)
         return self._container.get(id_data)
 
 
