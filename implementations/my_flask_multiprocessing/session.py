@@ -6,7 +6,7 @@ from interfaces.i_data_worker import IDataWorker
 import time
 import threading
 
-
+# 'test'
 class Session(IDataWorker):
 
     def __new__(cls):
