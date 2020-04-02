@@ -8,7 +8,7 @@ def server_connect():
 
     sockobj.connect(('localhost', 8888))
 
-    sockobj.send(b'test')
+    sockobj.send(b'test\n')
     data = sockobj.recv(1024)
     print('Client received:', data)
 
