@@ -6,7 +6,7 @@ from implementations.my_flask_synchro.request import request
 
 
 # инициализация фласка
-app = flask.Flask(2001)
+app = flask.Flask(2000)
 
 # реализация БЛ
 @app.route('/users', 'POST')
