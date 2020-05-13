@@ -23,7 +23,8 @@ async def async_test1():
 
 
 async def main():
-    task = asyncio.create_task(async_test1())
+    asyncio.create_task(async_test1())
+    asyncio.create_task(async_test1())
     async with async_test() as test:
         print('in main')
         print(test)

@@ -14,4 +14,5 @@ async def f():
 coro = f()
 coro.send(None)
 coro.send(None)
+print('before throw')
 coro.throw(asyncio.CancelledError)

@@ -64,7 +64,7 @@ async def main1():
 
 if __name__ == '__main__':
     # неасинхронный вариант
-    # asyncio.run(main())
+    asyncio.run(main())
 
     # асинхронный вариант
-    asyncio.run(main1())
+    # asyncio.run(main1())

@@ -10,6 +10,7 @@ async def main():
     loop.stop()
 
 
+# предположим что данный код не сделать асинхронным
 def blocking():
     time.sleep(0.5)
     print(f"{datetime.now().time()} Hello from a thread!")

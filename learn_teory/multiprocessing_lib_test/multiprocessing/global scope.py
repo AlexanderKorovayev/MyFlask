@@ -15,6 +15,7 @@ def square_list(mylist):
         result.append(num * num) 
     # print global list result
     print(f"Result in {multiprocessing.current_process().name}: {result}")
+    # print(f"Result in {threading.current_thread().name}: {result}")
   
 
 if __name__ == "__main__":
@@ -32,3 +33,4 @@ if __name__ == "__main__":
   
     # print global result list 
     print(f"Result in {multiprocessing.current_process().name}: {result}")
+    # print(f"Result in {threading.current_thread().name}: {result}")

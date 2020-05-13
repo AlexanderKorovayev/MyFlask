@@ -13,6 +13,6 @@ async def f():
 try:
     coro = f()
     test = coro.send(None)
-    print('test')
+    print('test ' + test)
 except StopIteration as e:
     print(e.value)

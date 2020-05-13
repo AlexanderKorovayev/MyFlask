@@ -20,7 +20,7 @@ if __name__ == '__main__':
         p = multiprocessing.Process(target=queue_setter, args=(queue,))
         processes.append(p)
         p.start()
-
+    
     for p in processes:
         p.join()
 
