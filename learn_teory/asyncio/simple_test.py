@@ -1,7 +1,5 @@
 import asyncio
-import psycopg2
 
-psycopg2.connect()
 
 async def block_io():
     print('start block')
